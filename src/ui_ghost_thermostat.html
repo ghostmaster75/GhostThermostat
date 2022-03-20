@@ -1,0 +1,79 @@
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+    
+    svg {
+        transition: all .6s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+    }
+
+    stop {
+        transition: all .5s;
+    }
+    
+	.led {
+    	-webkit-transition: all 0.5s;
+    	transition: all 0.5s;
+    	fill: url(#ledColor);
+    }
+    
+    .fa-text {
+       font-family: FontAwesome !important; 
+    }
+    .dial {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+    .qGradient {
+       fill : url(#qGradient);
+    }
+    .qGradientT {
+        fill : url(#qGradientT);
+    }
+    .eGradient {
+        fill : url(#eGradient);
+    }
+    .lbl {
+        font-family: 'Roboto', sans-serif;
+        text-anchor: middle;
+        fill : #ffffff;
+        clip-path: url(#qClip);
+    }
+    .lblDial {
+        fill: #dddddd;
+    }
+    
+    .lblAmbient {
+        font-weight: 400;
+        clip-path: url(#qClip);
+    }
+    
+    .lblAmbient tspan {
+        font-weight: 400;
+    }
+    
+    .lblTarget {
+        font-weight: 400;
+        fill: orange;
+    }
+    
+    .lblTarget tspan {
+        font-weight: 400;
+        fill: orange;
+        clip-path: url(#qClip);
+    }    
+    
+    .nodisplay {
+        display: none !important;
+    }
+    
+    .icon {
+        font-family: FontAwesome !important;
+    }
+    
+    .animate {
+        transition: all 0.5s;
+    }
+
+</style>
+<div id="GhostThermostat"></div> 
