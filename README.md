@@ -60,7 +60,7 @@ return msg;
 ```
 
 
-you can got msg output every time **switch state** change:
+you can got msg output every time **switch state** or **target_temperature** (this so you can store in globa variable) change:
 - <code>ambient_temperature</code> actual ambient temperature
 - <code>target_temperature</code> actual setted teperature
 - <code>mode</code>actual mode
