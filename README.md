@@ -1,7 +1,7 @@
 # GhostThermostat
 <H1>Node-Red - UI Template - Thermostat Dashboard Widget</H1>
 
-This widget is based on the [aarnau / node-red-contrib-ui-thermostat](https://github.com/aarnau/node-red-contrib-ui-thermostat).
+This widget is based on the [automatikas / Dashboard Nest thermostat](https://flows.nodered.org/flow/6e4649bc6d6529078cbb731610242eac).
 
 With this widget you can display and control your heating/cooling via Node-red dashboard.
 
