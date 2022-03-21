@@ -380,7 +380,7 @@ var ghostThermostatDial = (function() {
 			x: lblMode.getAttribute('x'),
 			y: lblMode.getAttribute('y'),
 			size: lblMode.getAttribute('font-size')
-		}
+		};
 
 		var lblRightAttributes = {
 			x: lblRight.getAttribute('x'),
@@ -400,7 +400,7 @@ var ghostThermostatDial = (function() {
             var splitValues =  separateDecValue(ambientTemp);
 			lblAmbientText.textContent = splitValues.int;
 			lblAmbientDecText.textContent = splitValues.dec;
-		}
+		};
 
 
 		function calcTargetTemperature(operation) {
@@ -409,7 +409,7 @@ var ghostThermostatDial = (function() {
 			targetTemp = rangedTemperature(targetTemp);
             setTargetTemperature(targetTemp);
             chkSwitchState();
-		}
+		};
 		
         function setTargetTemperature(targetTemp) {
             var splitValues =  separateDecValue(targetTemp);
@@ -421,19 +421,19 @@ var ghostThermostatDial = (function() {
 					options.onChangeState(self.target_temperature);
 			    };
 			}
-		}
+		};
 		
 		function separateDecValue(floatFalue) {
 		    var int = Math.floor(floatFalue);
 		    var dec = Math.floor(((floatFalue % 1) * 10)) > 0 ? ("." + Math.floor(((floatFalue % 1) * 10))) : "";
 		    return {int , dec};
-		}
+		};
 		
 		function rangedTemperature(temperature) {
 		    temperature = temperature < options.mintemp ? options.maxtemp : temperature;
 			temperature = temperature > options.maxtemp ? options.mintemp : temperature;
 			return temperature;
-		}
+		};
 		
 		function chkSwitchState() {
 		    var startSwitchState = state.switch_state;
@@ -457,7 +457,7 @@ var ghostThermostatDial = (function() {
 					options.onChangeState(self.switch_state);
 			    };
 		    };
-		}
+		};
 		
 
 		function resetButton() {
@@ -471,7 +471,7 @@ var ghostThermostatDial = (function() {
 			document.getElementById("btnRight").onclick = function() {
 				setModeClick();
 			};
-		}
+		};
 
 		function switchMainView(element, originalAttributes, mainLabel, leftLabel, rightLabel, panelState) {
 			setClass(lblAmbient, "nodisplay", panelState);
@@ -495,7 +495,7 @@ var ghostThermostatDial = (function() {
 			element.setAttribute('y', panelState ? lblAmbientAttributes.y : originalAttributes.y);
 			element.setAttribute('font-size', panelState ? lblAmbientAttributes.size : originalAttributes.size);
 
-		}
+		};
 
 
 		function setTargetClick() {
