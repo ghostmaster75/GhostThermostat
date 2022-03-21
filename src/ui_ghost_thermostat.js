@@ -54,12 +54,12 @@ var ghostThermostatDial = (function() {
 				label: "off",
 				icon: "\uf011",
 				color: "rgb(230,0,0)"
-			}, {
+			} /*, {
 				label: 'away',
 				icon: "\uf1ce",
 				color: "gray"
-			}],
-			modeNames : ["heating", "cooling", "off", "away"],
+			} */],
+			modeNames : ["heating", "cooling", "off"],
 			swtitchStates : ["heating", "cooling", "off"]
 		};
 
@@ -414,7 +414,12 @@ var ghostThermostatDial = (function() {
             var splitValues =  separateDecValue(targetTemp);
 			lblTargetText.textContent = splitValues.int;
 			lblTargetDecText.textContent = splitValues.dec;
-			state.target_temperature = targetTemp
+			if (state.target_temperature != targetTemp) {
+			    if (typeof options.onChangeState == 'function') {
+			        state.target_temperature = targetTemp
+					options.onChangeState(self.target_temperature);
+			    };
+			}
 		}
 		
 		function separateDecValue(floatFalue) {
