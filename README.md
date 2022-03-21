@@ -67,6 +67,12 @@ you can got msg output every time **switch state** or **target_temperature** (th
 - <code>switch_state</code> swtitch state (<code>heating</code> if heating in on - <code>cooling</code> if ac is on - <code>off</code> if is off)
 - <code>away</code>if away is enabled (<code>treu</code>/<code>false</code>)
 
+<h2>Customizzation</h2>
+You can easily customize the color of the ring, labels and icons by changing only the values in <code>options</code> and <code>parameters</code>.
+For the icons you have to use the unicode codes of the glyph (by default I use fontawesome)
+
+![immagine](https://user-images.githubusercontent.com/3819353/159229575-6a380e9a-f2dc-47e7-9b11-6ef8c824c79b.png)
+
 
 <h2>Flow Example</h2>
 
