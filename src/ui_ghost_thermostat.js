@@ -34,6 +34,7 @@ var ghostThermostatDial = (function() {
 			mintemp: options.mintemp || 10, // Minimum value for target temperature
 			maxtemp: options.maxtemp || 30, // Maximum value for target temperature
 			ledColors : {'off' : 'rgb(143,141,141)', 'heating' : 'rgb(255,128,0)', 'cooling' : 'rgb(81,170,214)'}, //Led Ring Colors
+			labels : {ambient : "AMBIENT", set : "SET", mode : "MODE", minus : "-", plus : "+", left : "<", right : ">"},
 			onChangeState: options.onChangeState || function() {} // Function called when  switch state change
 		};
 
@@ -254,7 +255,7 @@ var ghostThermostatDial = (function() {
 			y: 70,
 			class: 'lbl lblDial'
 		}, svg);
-		var lblMainText = document.createTextNode('AMBIENT');
+		var lblMainText = document.createTextNode(options.labels.ambient);
 		lblMain.appendChild(lblMainText);
 
 		var lblAmbient = createSVGElement('text', {
@@ -286,7 +287,7 @@ var ghostThermostatDial = (function() {
 			y: properties.radius + 75,
 			class: 'lbl lblDial'
 		}, svg);
-		var lblLeftText = document.createTextNode('SET');
+		var lblLeftText = document.createTextNode(options.labels.set);
 		lblLeft.appendChild(lblLeftText);
 
 		var lblTarget = createSVGElement('text', {
@@ -310,7 +311,7 @@ var ghostThermostatDial = (function() {
 			y: properties.radius + 75,
 			class: 'lbl lblDial'
 		}, svg);
-		var lblRightText = document.createTextNode('MODE');
+		var lblRightText = document.createTextNode(options.labels.mode);
 		lblRight.appendChild(lblRightText);
 
 		var lblMode = createSVGElement('text', {
@@ -452,7 +453,6 @@ var ghostThermostatDial = (function() {
 		    
 		    if (state.switch_state != startSwitchState) {
 		        //state.switch_state = switch_state;
-		        console.log("----" + state.switch_state);
 		        if (typeof options.onChangeState == 'function') {
 					options.onChangeState(self.switch_state);
 			    };
@@ -480,13 +480,13 @@ var ghostThermostatDial = (function() {
 			setClass(lblRight, "animate", panelState);
 			setClass(element, "animate", panelState);
 
-			lblMainText.textContent = panelState ? mainLabel : "AMBIENT";
-			lblLeftText.textContent = panelState ? leftLabel : "SET";
+			lblMainText.textContent = panelState ? mainLabel : options.labels.ambient;
+			lblLeftText.textContent = panelState ? leftLabel : options.labels.set;
 
 			lblLeft.setAttribute('y', panelState ? Number(lblLeftAttributes.y) + 40 : lblLeftAttributes.y);
 			lblLeft.setAttribute('font-size', panelState ? "3.5em" : "1em");
 
-			lblRightText.textContent = panelState ? rightLabel : "MODE";
+			lblRightText.textContent = panelState ? rightLabel : options.labels.mode;
 			lblRight.setAttribute('y', panelState ? Number(lblRightAttributes.y) + 40 : lblRightAttributes.y);
 			lblRight.setAttribute('font-size', panelState ? "3.5em" : "1em");
 
@@ -502,7 +502,7 @@ var ghostThermostatDial = (function() {
 
 			targetPanel = targetPanel ? false : true;
 			setClass(lblMode, "nodisplay", targetPanel);
-			switchMainView(lblTarget, lblTargetAttributes, "SET", "-", "+", targetPanel);
+			switchMainView(lblTarget, lblTargetAttributes, options.labels.set, options.labels.minus, options.labels.plus , targetPanel);
 
 			lblTargetDec.setAttribute('font-size', targetPanel ? lblAmbientDecAttributes.size : lblTargetDecAttributes.size);
 
@@ -548,7 +548,7 @@ var ghostThermostatDial = (function() {
 
 			modePanel = modePanel ? false : true;
 			setClass(lblTarget, "nodisplay", modePanel);
-			switchMainView(lblMode, lblModeAttributes, "MODE", "<", ">", modePanel);
+			switchMainView(lblMode, lblModeAttributes, options.labels.mode, options.labels.left, options.labels.right, modePanel);
 
 			if (modePanel) {
 			    
@@ -592,7 +592,6 @@ var initializing = true;
 (function(scope) {
 	var ghostThermostat = new ghostThermostatDial(document.getElementById('GhostThermostat'),{
     	onChangeState: function(v) {
-    	    console.log("ONSET" + new Date().getTime());
     	    var p = {
     	        "ambient_temperature":ghostThermostat.ambient_temperature,
     	        "target_temperature":ghostThermostat.target_temperature,
