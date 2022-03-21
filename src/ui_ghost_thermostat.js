@@ -115,7 +115,7 @@ var ghostThermostatDial = (function() {
 				return state.switch_state;
 			},
 			set: function(val) {
-				if (properties.modeNames.indexOf(val)>=0) {
+				if (properties.swtitchStates.indexOf(val)>=0) {
 					state.switch_state = val;
 					render();
 				}
@@ -418,7 +418,7 @@ var ghostThermostatDial = (function() {
 			if (state.target_temperature != targetTemp) {
 			    if (typeof options.onChangeState == 'function') {
 			        state.target_temperature = targetTemp
-					options.onChangeState(self.target_temperature);
+					options.onChangeState(self.switch_state);
 			    };
 			}
 		};
@@ -436,23 +436,24 @@ var ghostThermostatDial = (function() {
 		};
 		
 		function chkSwitchState() {
-		    var startSwitchState = state.switch_state;
+		    var switchState = state.switch_state;
 		    switch (state.mode) {
 		        case 0:
-		            state.switch_state = state.ambient_temperature < state.target_temperature ? 'heating' : 'off';
-		            setClass(ledRing, "led-off", 0);
+		            switchState = state.ambient_temperature < state.target_temperature ? 'heating' : 'off';
+		            //setClass(ledRing, "led-off", 0);
 		            break;
 		        case 1:
-		            state.switch_state = state.ambient_temperature > state.target_temperature ? 'cooling' : 'off';
+		            switchState = state.ambient_temperature > state.target_temperature ? 'cooling' : 'off';
 		            break;
 		        default:
-		            state.switch_state = 'off'
-		    }
+		            switchState = 'off';
+		    };
 		    
 		    ledRingGradientColorIn.setAttribute('stop-color', options.ledColors[state.switch_state]);
 		    
-		    if (state.switch_state != startSwitchState) {
-		        //state.switch_state = switch_state;
+		    if (state.switch_state != switchState) {
+		        state.switch_state = switchState;
+		        self.switch_state = switchState;
 		        if (typeof options.onChangeState == 'function') {
 					options.onChangeState(self.switch_state);
 			    };
@@ -555,19 +556,17 @@ var ghostThermostatDial = (function() {
 				document.getElementById("btnLeft").onclick = function() {
 				    mode = state.mode;
 				    mode = --mode < 0 ? properties.modes.length - 1 : mode;
-				    lblMode.textContent = properties.modes[mode].icon;
-				    lblMode.style.fill = properties.modes[mode].color;
-				    state.mode = mode;
-				    render();
+				    console.log("MODE :" + mode);
+				    setModeName(properties.modeNames[mode]);
+				    chkSwitchState();
 				};
 				
 				document.getElementById("btnRight").onclick = function() {
 				    mode = state.mode;
 				    mode = ++mode > properties.modes.length - 1 ? 0 : mode;
-				    lblMode.textContent = properties.modes[mode].icon;
-				    lblMode.style.fill = properties.modes[mode].color;
-				    state.mode = mode;
-				    render();
+				    console.log("MODE :" + mode);
+				    setModeName(properties.modeNames[mode]);
+				    chkSwitchState();
 				};
 				
 				lblMode.onclick = function() {
@@ -578,9 +577,17 @@ var ghostThermostatDial = (function() {
 			}
 		};
 		
+		function setModeName(modeName) {
+		    lblMode.textContent = properties.modes[properties.modeNames.indexOf(modeName)].icon;
+			lblMode.style.fill = properties.modes[properties.modeNames.indexOf(modeName)].color;
+			state.mode =properties.modeNames.indexOf(modeName);
+		}
+		
 		function render() {
+		    console.log("RENDER");
 		    setAmbientTemperature(self.ambient_temperature);
 		    setTargetTemperature(self.target_temperature);
+		    setModeName(self.mode_name);
 		    chkSwitchState();
 		};
 
