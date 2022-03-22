@@ -33,8 +33,20 @@ var ghostThermostatDial = (function() {
 			diameter: options.diameter || 400,
 			mintemp: options.mintemp || 10, // Minimum value for target temperature
 			maxtemp: options.maxtemp || 30, // Maximum value for target temperature
-			ledColors : {'off' : 'rgb(143,141,141)', 'heating' : 'rgb(255,128,0)', 'cooling' : 'rgb(81,170,214)'}, //Led Ring Colors
-			labels : {ambient : "AMBIENT", set : "SET", mode : "MODE", minus : "-", plus : "+", left : "<", right : ">"},
+			ledColors: {
+				'off': 'rgb(143,141,141)',
+				'heating': 'rgb(255,128,0)',
+				'cooling': 'rgb(81,170,214)'
+			}, //Led Ring Colors
+			labels: {
+				ambient: "AMBIENT",
+				set: "SET",
+				mode: "MODE",
+				minus: "-",
+				plus: "+",
+				left: "<",
+				right: ">"
+			},
 			onChangeState: options.onChangeState || function() {} // Function called when  switch state change
 		};
 
@@ -44,24 +56,26 @@ var ghostThermostatDial = (function() {
 		var properties = {
 			radius: options.diameter / 2,
 			modes: [{
-				label: "heating",
-				icon: "\uf06d",
-				color: "orange"
-			}, {
-				label: 'cooling',
-				icon: "\uf2dc",
-				color: "rgb(81,170,214)"
-			}, {
-				label: "off",
-				icon: "\uf011",
-				color: "rgb(230,0,0)"
-			} /*, {
+					label: "heating",
+					icon: "\uf06d",
+					color: "orange"
+				}, {
+					label: 'cooling',
+					icon: "\uf2dc",
+					color: "rgb(81,170,214)"
+				}, {
+					label: "off",
+					icon: "\uf011",
+					color: "rgb(230,0,0)"
+				}
+				/*, {
 				label: 'away',
 				icon: "\uf1ce",
 				color: "gray"
-			} */],
-			modeNames : ["heating", "cooling", "off"],
-			swtitchStates : ["heating", "cooling", "off"]
+			} */
+			],
+			modeNames: ["heating", "cooling", "off"],
+			swtitchStates: ["heating", "cooling", "off"]
 		};
 
 		/*
@@ -74,21 +88,21 @@ var ghostThermostatDial = (function() {
 			switch_state: 'off',
 			away: false
 		};
-		
+
 		/*
 		 * Property getter / setters
 		 */
-		Object.defineProperty(this,'target_temperature',{
+		Object.defineProperty(this, 'target_temperature', {
 			get: function() {
 				return state.target_temperature;
 			},
 			set: function(val) {
 				state.target_temperature = rangedTemperature(+val);
-				render()
+				//render()
 			}
 		});
-		
-		Object.defineProperty(this,'ambient_temperature',{
+
+		Object.defineProperty(this, 'ambient_temperature', {
 			get: function() {
 				return state.ambient_temperature;
 			},
@@ -97,47 +111,47 @@ var ghostThermostatDial = (function() {
 				render();
 			}
 		});
-		
-		Object.defineProperty(this,'mode_name',{
+
+		Object.defineProperty(this, 'mode_name', {
 			get: function() {
 				return properties.modeNames[state.mode];
 			},
 			set: function(val) {
-				if (properties.modeNames.indexOf(val)>=0) {
+				if (properties.modeNames.indexOf(val) >= 0) {
 					state.mode = properties.modeNames.indexOf(val);
-					render();
+					//render();
 				}
 			}
 		});
-		
-		Object.defineProperty(this,'switch_state',{
+
+		Object.defineProperty(this, 'switch_state', {
 			get: function() {
 				return state.switch_state;
 			},
 			set: function(val) {
-				if (properties.swtitchStates.indexOf(val)>=0) {
+				if (properties.swtitchStates.indexOf(val) >= 0) {
 					state.switch_state = val;
-					render();
+					//render();
 				}
 			}
 		});
-		
-		
-		function str2bool(strvalue){
-          return (strvalue && typeof strvalue == 'string') ? (strvalue.toLowerCase() == 'true') : (strvalue == true);
-        }   
-        
-        Object.defineProperty(this,'away',{
+
+
+		function str2bool(strvalue) {
+			return (strvalue && typeof strvalue == 'string') ? (strvalue.toLowerCase() == 'true') : (strvalue == true);
+		}
+
+		Object.defineProperty(this, 'away', {
 			get: function() {
 				return state.away;
 			},
 			set: function(val) {
 				state.away = !!str2bool(val);
-				render();
+				//render();
 			}
 		});
-        
-		
+
+
 		/*
 		 * SVG
 		 */
@@ -393,11 +407,11 @@ var ghostThermostatDial = (function() {
 			y: lblLeft.getAttribute('y'),
 			size: lblLeft.getAttribute('font-size')
 		};
-		
+
 		render();
 
-        function setAmbientTemperature(ambientTemp) {
-            var splitValues =  separateDecValue(ambientTemp);
+		function setAmbientTemperature(ambientTemp) {
+			var splitValues = separateDecValue(ambientTemp);
 			lblAmbientText.textContent = splitValues.int;
 			lblAmbientDecText.textContent = splitValues.dec;
 		};
@@ -407,59 +421,57 @@ var ghostThermostatDial = (function() {
 			let currentTemp = Number(parseFloat(lblTargetText.textContent + lblTargetDecText.textContent)).toFixed(1);
 			let targetTemp = (operation == '-' ? Number(Number(currentTemp) - 0.5).toFixed(1) : Number(Number(currentTemp) + 0.5).toFixed(1));
 			targetTemp = rangedTemperature(targetTemp);
-            setTargetTemperature(targetTemp);
-            chkSwitchState();
+			setTargetTemperature(targetTemp);
+			chkSwitchState();
 		};
-		
-        function setTargetTemperature(targetTemp) {
-            var splitValues =  separateDecValue(targetTemp);
+
+		function setTargetTemperature(targetTemp) {
+			var splitValues = separateDecValue(targetTemp);
 			lblTargetText.textContent = splitValues.int;
 			lblTargetDecText.textContent = splitValues.dec;
 			if (state.target_temperature != targetTemp) {
-			    if (typeof options.onChangeState == 'function') {
-			        state.target_temperature = targetTemp
-					options.onChangeState(self.switch_state);
-			    };
-			}
+				state.target_temperature = targetTemp
+				sendMsg();
+			};
 		};
-		
+
 		function separateDecValue(floatFalue) {
-		    var int = Math.floor(floatFalue);
-		    var dec = Math.floor(((floatFalue % 1) * 10)) > 0 ? ("." + Math.floor(((floatFalue % 1) * 10))) : "";
-		    return {int , dec};
+			var int = Math.floor(floatFalue);
+			var dec = Math.floor(((floatFalue % 1) * 10)) > 0 ? ("." + Math.floor(((floatFalue % 1) * 10))) : "";
+			return {
+				int,
+				dec
+			};
 		};
-		
+
 		function rangedTemperature(temperature) {
-		    temperature = temperature < options.mintemp ? options.maxtemp : temperature;
+			temperature = temperature < options.mintemp ? options.maxtemp : temperature;
 			temperature = temperature > options.maxtemp ? options.mintemp : temperature;
 			return temperature;
 		};
-		
+
 		function chkSwitchState() {
-		    var switchState = state.switch_state;
-		    switch (state.mode) {
-		        case 0:
-		            switchState = state.ambient_temperature < state.target_temperature ? 'heating' : 'off';
-		            //setClass(ledRing, "led-off", 0);
-		            break;
-		        case 1:
-		            switchState = state.ambient_temperature > state.target_temperature ? 'cooling' : 'off';
-		            break;
-		        default:
-		            switchState = 'off';
-		    };
-		    
-		    ledRingGradientColorIn.setAttribute('stop-color', options.ledColors[state.switch_state]);
-		    
-		    if (state.switch_state != switchState) {
-		        state.switch_state = switchState;
-		        self.switch_state = switchState;
-		        if (typeof options.onChangeState == 'function') {
-					options.onChangeState(self.switch_state);
-			    };
-		    };
+		    console.log("chkSwitchState");
+			var switchState = state.switch_state;
+			switch (state.mode) {
+				case 0:
+					switchState = state.ambient_temperature < state.target_temperature ? 'heating' : 'off';
+					break;
+				case 1:
+					switchState = state.ambient_temperature > state.target_temperature ? 'cooling' : 'off';
+					break;
+				default:
+					switchState = 'off';
+			};
+
+			ledRingGradientColorIn.setAttribute('stop-color', options.ledColors[state.switch_state]);
+
+			if (state.switch_state != switchState) {
+				state.switch_state = switchState;
+				sendMsg();
+			};
 		};
-		
+
 
 		function resetButton() {
 			document.getElementById("btnLeft").onmousedown = "";
@@ -503,7 +515,7 @@ var ghostThermostatDial = (function() {
 
 			targetPanel = targetPanel ? false : true;
 			setClass(lblMode, "nodisplay", targetPanel);
-			switchMainView(lblTarget, lblTargetAttributes, options.labels.set, options.labels.minus, options.labels.plus , targetPanel);
+			switchMainView(lblTarget, lblTargetAttributes, options.labels.set, options.labels.minus, options.labels.plus, targetPanel);
 
 			lblTargetDec.setAttribute('font-size', targetPanel ? lblAmbientDecAttributes.size : lblTargetDecAttributes.size);
 
@@ -552,23 +564,25 @@ var ghostThermostatDial = (function() {
 			switchMainView(lblMode, lblModeAttributes, options.labels.mode, options.labels.left, options.labels.right, modePanel);
 
 			if (modePanel) {
-			    
+
 				document.getElementById("btnLeft").onclick = function() {
-				    mode = state.mode;
-				    mode = --mode < 0 ? properties.modes.length - 1 : mode;
-				    console.log("MODE :" + mode);
-				    setModeName(properties.modeNames[mode]);
-				    chkSwitchState();
+					mode = state.mode;
+					mode = --mode < 0 ? properties.modes.length - 1 : mode;
+					console.log("MODE :" + mode);
+					setModeName(properties.modeNames[mode]);
+					chkSwitchState();
+					sendMsg();
 				};
-				
+
 				document.getElementById("btnRight").onclick = function() {
-				    mode = state.mode;
-				    mode = ++mode > properties.modes.length - 1 ? 0 : mode;
-				    console.log("MODE :" + mode);
-				    setModeName(properties.modeNames[mode]);
-				    chkSwitchState();
+					mode = state.mode;
+					mode = ++mode > properties.modes.length - 1 ? 0 : mode;
+					console.log("MODE :" + mode);
+					setModeName(properties.modeNames[mode]);
+					chkSwitchState();
+					sendMsg();
 				};
-				
+
 				lblMode.onclick = function() {
 					setModeClick();
 				};
@@ -576,19 +590,25 @@ var ghostThermostatDial = (function() {
 				resetButton()
 			}
 		};
-		
+
 		function setModeName(modeName) {
-		    lblMode.textContent = properties.modes[properties.modeNames.indexOf(modeName)].icon;
+			lblMode.textContent = properties.modes[properties.modeNames.indexOf(modeName)].icon;
 			lblMode.style.fill = properties.modes[properties.modeNames.indexOf(modeName)].color;
-			state.mode =properties.modeNames.indexOf(modeName);
-		}
+			state.mode = properties.modeNames.indexOf(modeName);
+		};
 		
+		function sendMsg() {
+			if (typeof options.onChangeState == 'function') {
+				options.onChangeState(state.switch_state);
+			}
+		};
+
 		function render() {
-		    console.log("RENDER");
-		    setAmbientTemperature(self.ambient_temperature);
-		    setTargetTemperature(self.target_temperature);
-		    setModeName(self.mode_name);
-		    chkSwitchState();
+			console.log("RENDER");
+			setAmbientTemperature(self.ambient_temperature);
+			setTargetTemperature(self.target_temperature);
+			setModeName(self.mode_name);
+			chkSwitchState();
 		};
 
 	};
@@ -597,28 +617,31 @@ var ghostThermostatDial = (function() {
 var initializing = true;
 
 (function(scope) {
-	var ghostThermostat = new ghostThermostatDial(document.getElementById('GhostThermostat'),{
-    	onChangeState: function(v) {
-    	    var p = {
-    	        "ambient_temperature":ghostThermostat.ambient_temperature,
-    	        "target_temperature":ghostThermostat.target_temperature,
-        	    "mode": ghostThermostat.mode_name,
-        	    "switch_state":v,
-    	        "away":ghostThermostat.away
-    	    };
-            scope.send({topic: "changed_state", payload: p});
-    	}
-    });
+	var ghostThermostat = new ghostThermostatDial(document.getElementById('GhostThermostat'), {
+		onChangeState: function() {
+			var p = {
+				"ambient_temperature": ghostThermostat.ambient_temperature,
+				"target_temperature": ghostThermostat.target_temperature,
+				"mode": ghostThermostat.mode_name,
+				"switch_state": ghostThermostat.switch_state,
+				"away": ghostThermostat.away
+			};
+			scope.send({
+				topic: "changed_state",
+				payload: p
+			});
+		}
+	});
 
 	scope.$watch('msg', function(data) {
 		if (initializing) {
 			initializing = false;
 		} else {
-            ghostThermostat.ambient_temperature = data.payload.ambient_temperature || ghostThermostat.ambient_temperature;
-            ghostThermostat.target_temperature = data.payload.target_temperature || ghostThermostat.target_temperature;
-            ghostThermostat.mode_name = data.payload.mode || ghostThermostat.mode_name;
-            ghostThermostat.switch_state = data.payload.switch_state || ghostThermostat.switch_state;
-            ghostThermostat.away = data.payload.away || ghostThermostat.away;
+			ghostThermostat.ambient_temperature = data.payload.ambient_temperature || ghostThermostat.ambient_temperature;
+			ghostThermostat.target_temperature = data.payload.target_temperature || ghostThermostat.target_temperature;
+			ghostThermostat.mode_name = data.payload.mode || ghostThermostat.mode_name;
+			ghostThermostat.switch_state = data.payload.switch_state || ghostThermostat.switch_state;
+			ghostThermostat.away = data.payload.away || ghostThermostat.away;
 		}
 	});
 })(scope);
