@@ -9,71 +9,71 @@
         transition: all .5s;
     }
     
-	.led {
+	{{'#GhostThermostat' + $id}} .led {
     	-webkit-transition: all 0.5s;
     	transition: all 0.5s;
-    	fill: url(#ledColor);
+    	fill: url({{'#GhostThermostat' + $id + 'ledColor'}});
     }
     
-    .fa-text {
+    {{'#GhostThermostat' + $id}} .fa-text {
        font-family: FontAwesome !important; 
     }
-    .dial {
+    {{'#GhostThermostat' + $id}} .dial {
         -webkit-user-select: none;
         -moz-user-select: none;
         -ms-user-select: none;
         user-select: none;
     }
-    .qGradient {
-       fill : url(#qGradient);
+    {{'#GhostThermostat' + $id}} .qGradient {
+       fill : url({{'#GhostThermostat' + $id + 'qGradient'}});
     }
-    .qGradientT {
-        fill : url(#qGradientT);
+    {{'#GhostThermostat' + $id}} .qGradientT {
+        fill : url({{'#GhostThermostat' + $id + 'qGradientT'}});
     }
-    .eGradient {
-        fill : url(#eGradient);
+    {{'#GhostThermostat' + $id}} .eGradient {
+        fill : url({{'#GhostThermostat' + $id + 'eGradient'}});
     }
-    .lbl {
+    {{'#GhostThermostat' + $id}} .lbl {
         font-family: 'Roboto', sans-serif;
         text-anchor: middle;
         fill : #ffffff;
-        clip-path: url(#qClip);
+        clip-path: url({{'#GhostThermostat' + $id + 'qClip'}});
     }
-    .lblDial {
+    {{'#GhostThermostat' + $id}} .lblDial {
         fill: #dddddd;
     }
     
-    .lblAmbient {
+    {{'#GhostThermostat' + $id}} .lblAmbient {
         font-weight: 400;
-        clip-path: url(#qClip);
+        clip-path: url({{'#GhostThermostat' + $id + 'qClip'}});
     }
     
-    .lblAmbient tspan {
+    {{'#GhostThermostat' + $id}} .lblAmbient tspan {
         font-weight: 400;
     }
     
-    .lblTarget {
+    {{'#GhostThermostat' + $id}} .lblTarget {
         font-weight: 400;
         fill: orange;
     }
     
-    .lblTarget tspan {
+    {{'#GhostThermostat' + $id}} .lblTarget tspan {
         font-weight: 400;
         fill: orange;
-        clip-path: url(#qClip);
+        clip-path: url({{'#GhostThermostat' + $id + 'qClip'}});
     }    
     
-    .nodisplay {
+    {{'#GhostThermostat' + $id}} .nodisplay {
         display: none !important;
     }
     
-    .icon {
+    {{'#GhostThermostat' + $id}} .icon {
         font-family: FontAwesome !important;
     }
     
-    .animate {
+    {{'#GhostThermostat' + $id}} .animate {
         transition: all 0.5s;
     }
 
 </style>
-<div id="GhostThermostat"></div> 
+<div id="{{'GhostThermostat' + $id}}"></div>
