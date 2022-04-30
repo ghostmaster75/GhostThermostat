@@ -1,14 +1,22 @@
 [
     {
+        "id": "d6c548e700f619c9",
+        "type": "tab",
+        "label": "Thermostat",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "ab8fb1c28921f1dd",
         "type": "ui_template",
         "z": "d6c548e700f619c9",
         "group": "9c90a075584ede2b",
         "name": "GhostThermostat",
         "order": 2,
-        "width": "6",
-        "height": "6",
-        "format": "<style>\n    @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');\n    \n    svg {\n        transition: all .6s cubic-bezier(0.175, 0.885, 0.32, 1.2);\n    }\n\n    stop {\n        transition: all .5s;\n    }\n    \n\t.led {\n    \t-webkit-transition: all 0.5s;\n    \ttransition: all 0.5s;\n    \tfill: url(#ledColor);\n    }\n    \n    .fa-text {\n       font-family: FontAwesome !important; \n    }\n    .dial {\n        -webkit-user-select: none;\n        -moz-user-select: none;\n        -ms-user-select: none;\n        user-select: none;\n    }\n    .qGradient {\n       fill : url(#qGradient);\n    }\n    .qGradientT {\n        fill : url(#qGradientT);\n    }\n    .eGradient {\n        fill : url(#eGradient);\n    }\n    .lbl {\n        font-family: 'Roboto', sans-serif;\n        text-anchor: middle;\n        fill : #ffffff;\n        clip-path: url(#qClip);\n    }\n    .lblDial {\n        fill: #dddddd;\n    }\n    \n    .lblAmbient {\n        font-weight: 400;\n        clip-path: url(#qClip);\n    }\n    \n    .lblAmbient tspan {\n        font-weight: 400;\n    }\n    \n    .lblTarget {\n        font-weight: 400;\n        fill: orange;\n    }\n    \n    .lblTarget tspan {\n        font-weight: 400;\n        fill: orange;\n        clip-path: url(#qClip);\n    }    \n    \n    .nodisplay {\n        display: none !important;\n    }\n    \n    .icon {\n        font-family: FontAwesome !important;\n    }\n    \n    .animate {\n        transition: all 0.5s;\n    }\n\n</style>\n<div id=\"GhostThermostat\"></div> \n<script>\nvar mousedownID = -1;\nvar ghostThermostatDial = (function() {\n\tconsole.log(\"START\");\n\n\tfunction createSVGElement(tag, attributes, appendTo) {\n\t\tvar element = document.createElementNS('http://www.w3.org/2000/svg', tag);\n\t\tattr(element, attributes);\n\t\tif (appendTo) {\n\t\t\tappendTo.appendChild(element);\n\t\t}\n\t\treturn element;\n\t}\n\n\tfunction attr(element, attrs) {\n\t\tfor (var i in attrs) {\n\t\t\telement.setAttribute(i, attrs[i]);\n\t\t}\n\t}\n\n\tfunction setClass(el, className, state) {\n\t\tel.classList[state ? 'add' : 'remove'](className);\n\t}\n\n\treturn function(targetElement, options) {\n\t\tconsole.log(\"RET FUN\");\n\t\tvar self = this;\n\n\t\t/*\n\t\t * Options\n\t\t */\n\t\toptions = options || {};\n\t\toptions = {\n\t\t\tdiameter: options.diameter || 400,\n\t\t\tmintemp: options.mintemp || 10, // Minimum value for target temperature\n\t\t\tmaxtemp: options.maxtemp || 30, // Maximum value for target temperature\n\t\t\tledColors: {\n\t\t\t\t'off': 'rgb(143,141,141)',\n\t\t\t\t'heating': 'rgb(255,128,0)',\n\t\t\t\t'cooling': 'rgb(81,170,214)'\n\t\t\t}, //Led Ring Colors\n\t\t\tlabels: {\n\t\t\t\tambient: \"AMBIENT\",\n\t\t\t\tset: \"SET\",\n\t\t\t\tmode: \"MODE\",\n\t\t\t\tminus: \"-\",\n\t\t\t\tplus: \"+\",\n\t\t\t\tleft: \"<\",\n\t\t\t\tright: \">\"\n\t\t\t},\n\t\t\tonChangeState: options.onChangeState || function() {} // Function called when  switch state change\n\t\t};\n\n\t\t/*\n\t\t * Properties\n\t\t */\n\t\tvar properties = {\n\t\t\tradius: options.diameter / 2,\n\t\t\tmodes: [{\n\t\t\t\t\tlabel: \"heating\",\n\t\t\t\t\ticon: \"\\uf06d\",\n\t\t\t\t\tcolor: \"orange\"\n\t\t\t\t}, {\n\t\t\t\t\tlabel: 'cooling',\n\t\t\t\t\ticon: \"\\uf2dc\",\n\t\t\t\t\tcolor: \"rgb(81,170,214)\"\n\t\t\t\t}, {\n\t\t\t\t\tlabel: \"off\",\n\t\t\t\t\ticon: \"\\uf011\",\n\t\t\t\t\tcolor: \"rgb(230,0,0)\"\n\t\t\t\t}\n\t\t\t\t/*, {\n\t\t\t\tlabel: 'away',\n\t\t\t\ticon: \"\\uf1ce\",\n\t\t\t\tcolor: \"gray\"\n\t\t\t} */\n\t\t\t],\n\t\t\tmodeNames: [\"heating\", \"cooling\", \"off\"],\n\t\t\tswtitchStates: [\"heating\", \"cooling\", \"off\"]\n\t\t};\n\n\t\t/*\n\t\t * Object state\n\t\t */\n\t\tvar state = {\n\t\t\ttarget_temperature: options.mintemp,\n\t\t\tambient_temperature: options.maxtemp,\n\t\t\tmode: properties.modes.indexOf(properties.modes[0]),\n\t\t\tswitch_state: 'off',\n\t\t\taway: false\n\t\t};\n\n\t\t/*\n\t\t * Property getter / setters\n\t\t */\n\t\tObject.defineProperty(this, 'target_temperature', {\n\t\t\tget: function() {\n\t\t\t\treturn state.target_temperature;\n\t\t\t},\n\t\t\tset: function(val) {\n\t\t\t\tstate.target_temperature = rangedTemperature(+val);\n\t\t\t\t//render()\n\t\t\t}\n\t\t});\n\n\t\tObject.defineProperty(this, 'ambient_temperature', {\n\t\t\tget: function() {\n\t\t\t\treturn state.ambient_temperature;\n\t\t\t},\n\t\t\tset: function(val) {\n\t\t\t\tstate.ambient_temperature = +val;\n\t\t\t\trender();\n\t\t\t}\n\t\t});\n\n\t\tObject.defineProperty(this, 'mode_name', {\n\t\t\tget: function() {\n\t\t\t\treturn properties.modeNames[state.mode];\n\t\t\t},\n\t\t\tset: function(val) {\n\t\t\t\tif (properties.modeNames.indexOf(val) >= 0) {\n\t\t\t\t\tstate.mode = properties.modeNames.indexOf(val);\n\t\t\t\t\t//render();\n\t\t\t\t}\n\t\t\t}\n\t\t});\n\n\t\tObject.defineProperty(this, 'switch_state', {\n\t\t\tget: function() {\n\t\t\t\treturn state.switch_state;\n\t\t\t},\n\t\t\tset: function(val) {\n\t\t\t\tif (properties.swtitchStates.indexOf(val) >= 0) {\n\t\t\t\t\tstate.switch_state = val;\n\t\t\t\t\t//render();\n\t\t\t\t}\n\t\t\t}\n\t\t});\n\n\n\t\tfunction str2bool(strvalue) {\n\t\t\treturn (strvalue && typeof strvalue == 'string') ? (strvalue.toLowerCase() == 'true') : (strvalue == true);\n\t\t}\n\n\t\tObject.defineProperty(this, 'away', {\n\t\t\tget: function() {\n\t\t\t\treturn state.away;\n\t\t\t},\n\t\t\tset: function(val) {\n\t\t\t\tstate.away = !!str2bool(val);\n\t\t\t\t//render();\n\t\t\t}\n\t\t});\n\n\n\t\t/*\n\t\t * SVG\n\t\t */\n\t\tvar svg = createSVGElement('svg', {\n\t\t\twidth: '100%', //options.diameter+'px',\n\t\t\theight: '100%', //options.diameter+'px',\n\t\t\tviewBox: '0 0 ' + options.diameter + ' ' + options.diameter,\n\t\t\tclass: 'dial'\n\t\t}, targetElement);\n\n\t\t// DEFS \n\t\tvar defs = createSVGElement('defs', null, svg);\n\n\t\tvar qgradient = createSVGElement('linearGradient', {\n\t\t\t'id': 'qGradient',\n\t\t\tgradientTransform: 'rotate(65)'\n\t\t}, defs);\n\t\tvar stop = createSVGElement('stop', {\n\t\t\t'offset': '50%',\n\t\t\t'stop-color': 'rgb(86,89,94)'\n\t\t}, qgradient);\n\t\tvar stop = createSVGElement('stop', {\n\t\t\t'offset': '65%',\n\t\t\t'stop-color': 'rgb(30,30,30)'\n\t\t}, qgradient);\n\n\t\tvar qGradientT = createSVGElement('linearGradient', {\n\t\t\t'id': 'qGradientT',\n\t\t\tgradientTransform: 'rotate(65)'\n\t\t}, defs);\n\t\tvar stop = createSVGElement('stop', {\n\t\t\t'offset': '55%',\n\t\t\t'stop-color': '#3b3e43',\n\t\t\t'stop-opacity': '1'\n\t\t}, qGradientT);\n\t\tvar stop = createSVGElement('stop', {\n\t\t\t'offset': '90%',\n\t\t\t'stop-color': 'rgb(0,0,0)',\n\t\t\t'stop-opacity': '1'\n\t\t}, qGradientT);\n\n\t\tvar clipPath = createSVGElement('clipPath', {\n\t\t\t'id': 'qClip',\n\t\t}, defs);\n\t\tvar circle = createSVGElement('circle', {\n\t\t\tcx: properties.radius,\n\t\t\tcy: properties.radius,\n\t\t\tr: properties.radius - 25\n\t\t}, clipPath);\n\n\n\t\tvar ledRingGradient = createSVGElement('radialGradient', {\n\t\t\t'id': 'ledColor',\n\t\t\t'cx': \"50%\",\n\t\t\t'cy': \"50%\",\n\t\t\t'r': \"95%\",\n\t\t\t'fx': \"50%\",\n\t\t\t'fy': \"50%\"\n\t\t}, defs);\n\t\tvar ledRingGradientColorIn = createSVGElement('stop', {\n\t\t\t'offset': '45%',\n\t\t\t'stop-color': 'rgb(255,0,130)',\n\t\t\t'stop-opacity': '1'\n\t\t}, ledRingGradient);\n\t\tvar ledRingGradientColorOut = createSVGElement('stop', {\n\t\t\t'offset': '65%',\n\t\t\t'stop-color': 'rgb(0,0,0)',\n\t\t\t'stop-opacity': '1'\n\t\t}, ledRingGradient);\n\n\t\tvar egradient = createSVGElement('linearGradient', {\n\t\t\t'id': 'eGradient',\n\t\t\tgradientTransform: 'rotate(55)'\n\t\t}, defs);\n\t\tvar stop = createSVGElement('stop', {\n\t\t\t'offset': '55%',\n\t\t\t'stop-color': '#888888',\n\t\t\t'stop-opacity': '1'\n\t\t}, egradient);\n\t\tvar stop = createSVGElement('stop', {\n\t\t\t'offset': '95%',\n\t\t\t'stop-color': '#333333',\n\t\t\t'stop-opacity': '1'\n\t\t}, egradient);\n\n\t\t// DIAL\n\t\tvar circle = createSVGElement('circle', {\n\t\t\tcx: properties.radius,\n\t\t\tcy: properties.radius,\n\t\t\tr: properties.radius,\n\t\t\tclass: 'eGradient'\n\t\t}, svg);\n\t\tvar ledRing = createSVGElement('circle', {\n\t\t\tcx: properties.radius,\n\t\t\tcy: properties.radius,\n\t\t\tr: properties.radius - 3,\n\t\t\t'stroke': 'black',\n\t\t\t'stroke-width': '1',\n\t\t\tclass: 'led'\n\t\t}, svg);\n\t\tvar circle = createSVGElement('circle', {\n\t\t\tcx: properties.radius,\n\t\t\tcy: properties.radius,\n\t\t\tr: properties.radius - 20,\n\t\t\tclass: 'qGradient'\n\t\t}, svg);\n\t\tvar circle = createSVGElement('circle', {\n\t\t\tcx: properties.radius,\n\t\t\tcy: properties.radius,\n\t\t\tr: properties.radius - 25,\n\t\t\tclass: 'qGradient'\n\t\t}, svg);\n\t\tvar lblMain = createSVGElement('text', {\n\t\t\tx: properties.radius,\n\t\t\ty: 70,\n\t\t\tclass: 'lbl lblDial'\n\t\t}, svg);\n\t\tvar lblMainText = document.createTextNode(options.labels.ambient);\n\t\tlblMain.appendChild(lblMainText);\n\n\t\tvar lblAmbient = createSVGElement('text', {\n\t\t\tx: properties.radius,\n\t\t\ty: 210,\n\t\t\t'font-size': '160',\n\t\t\tclass: 'lbl lblAmbient'\n\t\t}, svg);\n\t\tvar lblAmbientText = document.createTextNode('21');\n\t\tlblAmbient.appendChild(lblAmbientText);\n\t\tvar lblAmbientDec = createSVGElement('tspan', {\n\t\t\t'font-size': '60',\n\t\t}, lblAmbient);\n\t\tvar lblAmbientDecText = document.createTextNode('.5');\n\t\tlblAmbientDec.appendChild(lblAmbientDecText);\n\n\t\tvar line = createSVGElement('line', {\n\t\t\tx1: 55,\n\t\t\ty1: properties.radius + 35,\n\t\t\tx2: options.diameter - 55,\n\t\t\ty2: properties.radius + 35,\n\t\t\t'stroke': '#DDDDDD',\n\t\t\t'stroke-width': '1',\n\t\t\t'opacity': '0.8'\n\t\t}, svg);\n\n\t\tvar lblLeft = createSVGElement('text', {\n\t\t\tx: 125,\n\t\t\ty: properties.radius + 75,\n\t\t\tclass: 'lbl lblDial'\n\t\t}, svg);\n\t\tvar lblLeftText = document.createTextNode(options.labels.set);\n\t\tlblLeft.appendChild(lblLeftText);\n\n\t\tvar lblTarget = createSVGElement('text', {\n\t\t\tx: 125,\n\t\t\ty: properties.radius + 115,\n\t\t\t'font-size': '35',\n\t\t\tclass: 'lbl lblTarget'\n\t\t}, svg);\n\t\tvar lblTargetText = document.createTextNode('20');\n\t\tlblTarget.appendChild(lblTargetText);\n\n\t\tvar lblTargetDec = createSVGElement('tspan', {\n\t\t\t'font-size': '20',\n\t\t}, lblTarget);\n\n\t\tvar lblTargetDecText = document.createTextNode('.5');\n\t\tlblTargetDec.appendChild(lblTargetDecText);\n\n\t\tvar lblRight = createSVGElement('text', {\n\t\t\tx: options.diameter - 125,\n\t\t\ty: properties.radius + 75,\n\t\t\tclass: 'lbl lblDial'\n\t\t}, svg);\n\t\tvar lblRightText = document.createTextNode(options.labels.mode);\n\t\tlblRight.appendChild(lblRightText);\n\n\t\tvar lblMode = createSVGElement('text', {\n\t\t\tx: options.diameter - 125,\n\t\t\ty: properties.radius + 115,\n\t\t\t'font-size': '35',\n\t\t\tclass: 'lbl lblTarget icon'\n\t\t}, svg);\n\t\tvar lblModeText = document.createTextNode(properties.modes[0].icon);\n\t\tlblMode.appendChild(lblModeText);\n\n\t\tvar btnSet = createSVGElement('g', {\n\t\t\ttransform: 'translate(200,200)'\n\t\t}, svg);\n\t\tvar path = createSVGElement('path', {\n\t\t\td: 'M0,40 L0,175   A175,175 0 0,1 -175,40    z',\n\t\t\tfill: 'blue',\n\t\t\topacity: '0',\n\t\t\t'id': 'btnLeft'\n\t\t}, btnSet);\n\t\tvar path = createSVGElement('path', {\n\t\t\td: 'M0,40 L175,40   A175,175 0 0,1    0,175  z',\n\t\t\tfill: 'red',\n\t\t\topacity: '0',\n\t\t\t'id': 'btnRight'\n\t\t}, btnSet);\n\n\n\n\t\tdocument.getElementById(\"btnLeft\").onclick = function() {\n\t\t\tsetTargetClick();\n\t\t};\n\n\t\tdocument.getElementById(\"btnRight\").onclick = function() {\n\t\t\tsetModeClick();\n\t\t};\n\n\t\tvar targetPanel = false;\n\t\tvar modePanel = false;\n\n\t\tvar lblAmbientAttributes = {\n\t\t\tx: lblAmbient.getAttribute('x'),\n\t\t\ty: lblAmbient.getAttribute('y'),\n\t\t\tsize: lblAmbient.getAttribute('font-size')\n\t\t};\n\n\t\tvar lblAmbientDecAttributes = {\n\t\t\tx: lblAmbientDec.getAttribute('x'),\n\t\t\ty: lblAmbientDec.getAttribute('y'),\n\t\t\tsize: lblAmbientDec.getAttribute('font-size')\n\t\t};\n\n\t\tvar lblTargetAttributes = {\n\t\t\tx: lblTarget.getAttribute('x'),\n\t\t\ty: lblTarget.getAttribute('y'),\n\t\t\tsize: lblTarget.getAttribute('font-size')\n\t\t};\n\n\t\tvar lblTargetDecAttributes = {\n\t\t\tx: lblTargetDec.getAttribute('x'),\n\t\t\ty: lblTargetDec.getAttribute('y'),\n\t\t\tsize: lblTargetDec.getAttribute('font-size')\n\t\t};\n\n\t\tvar lblModeAttributes = {\n\t\t\tx: lblMode.getAttribute('x'),\n\t\t\ty: lblMode.getAttribute('y'),\n\t\t\tsize: lblMode.getAttribute('font-size')\n\t\t};\n\n\t\tvar lblRightAttributes = {\n\t\t\tx: lblRight.getAttribute('x'),\n\t\t\ty: lblRight.getAttribute('y'),\n\t\t\tsize: lblRight.getAttribute('font-size')\n\t\t};\n\n\t\tvar lblLeftAttributes = {\n\t\t\tx: lblLeft.getAttribute('x'),\n\t\t\ty: lblLeft.getAttribute('y'),\n\t\t\tsize: lblLeft.getAttribute('font-size')\n\t\t};\n\n\t\trender();\n\n\t\tfunction setAmbientTemperature(ambientTemp) {\n\t\t\tvar splitValues = separateDecValue(ambientTemp);\n\t\t\tlblAmbientText.textContent = splitValues.int;\n\t\t\tlblAmbientDecText.textContent = splitValues.dec;\n\t\t};\n\n\n\t\tfunction calcTargetTemperature(operation) {\n\t\t\tlet currentTemp = Number(parseFloat(lblTargetText.textContent + lblTargetDecText.textContent)).toFixed(1);\n\t\t\tlet targetTemp = (operation == '-' ? Number(Number(currentTemp) - 0.5).toFixed(1) : Number(Number(currentTemp) + 0.5).toFixed(1));\n\t\t\ttargetTemp = rangedTemperature(targetTemp);\n\t\t\tsetTargetTemperature(targetTemp);\n\t\t\tchkSwitchState();\n\t\t};\n\n\t\tfunction setTargetTemperature(targetTemp) {\n\t\t\tvar splitValues = separateDecValue(targetTemp);\n\t\t\tlblTargetText.textContent = splitValues.int;\n\t\t\tlblTargetDecText.textContent = splitValues.dec;\n\t\t\tif (state.target_temperature != targetTemp) {\n\t\t\t\tstate.target_temperature = targetTemp\n\t\t\t\tsendMsg();\n\t\t\t};\n\t\t};\n\n\t\tfunction separateDecValue(floatFalue) {\n\t\t\tvar int = Math.floor(floatFalue);\n\t\t\tvar dec = Math.floor(((floatFalue % 1) * 10)) > 0 ? (\".\" + Math.floor(((floatFalue % 1) * 10))) : \"\";\n\t\t\treturn {\n\t\t\t\tint,\n\t\t\t\tdec\n\t\t\t};\n\t\t};\n\n\t\tfunction rangedTemperature(temperature) {\n\t\t\ttemperature = temperature < options.mintemp ? options.maxtemp : temperature;\n\t\t\ttemperature = temperature > options.maxtemp ? options.mintemp : temperature;\n\t\t\treturn temperature;\n\t\t};\n\n\t\tfunction chkSwitchState() {\n\t\t    console.log(\"chkSwitchState\");\n\t\t\tvar switchState = state.switch_state;\n\t\t\tswitch (state.mode) {\n\t\t\t\tcase 0:\n\t\t\t\t\tswitchState = state.ambient_temperature < state.target_temperature ? 'heating' : 'off';\n\t\t\t\t\tbreak;\n\t\t\t\tcase 1:\n\t\t\t\t\tswitchState = state.ambient_temperature > state.target_temperature ? 'cooling' : 'off';\n\t\t\t\t\tbreak;\n\t\t\t\tdefault:\n\t\t\t\t\tswitchState = 'off';\n\t\t\t};\n\n\t\t\tledRingGradientColorIn.setAttribute('stop-color', options.ledColors[state.switch_state]);\n\n\t\t\tif (state.switch_state != switchState) {\n\t\t\t\tstate.switch_state = switchState;\n\t\t\t\tsendMsg();\n\t\t\t};\n\t\t};\n\n\n\t\tfunction resetButton() {\n\t\t\tdocument.getElementById(\"btnLeft\").onmousedown = \"\";\n\t\t\tdocument.getElementById(\"btnLeft\").onmouseup = \"\";\n\t\t\tdocument.getElementById(\"btnLeft\").onclick = function() {\n\t\t\t\tsetTargetClick();\n\t\t\t};\n\t\t\tdocument.getElementById(\"btnRight\").onmousedown = \"\";\n\t\t\tdocument.getElementById(\"btnRight\").onmouseup = \"\";\n\t\t\tdocument.getElementById(\"btnRight\").onclick = function() {\n\t\t\t\tsetModeClick();\n\t\t\t};\n\t\t};\n\n\t\tfunction switchMainView(element, originalAttributes, mainLabel, leftLabel, rightLabel, panelState) {\n\t\t\tsetClass(lblAmbient, \"nodisplay\", panelState);\n\t\t\tsetClass(lblMain, \"animate\", panelState);\n\t\t\tsetClass(lblLeft, \"animate\", panelState);\n\t\t\tsetClass(lblRight, \"animate\", panelState);\n\t\t\tsetClass(element, \"animate\", panelState);\n\n\t\t\tlblMainText.textContent = panelState ? mainLabel : options.labels.ambient;\n\t\t\tlblLeftText.textContent = panelState ? leftLabel : options.labels.set;\n\n\t\t\tlblLeft.setAttribute('y', panelState ? Number(lblLeftAttributes.y) + 40 : lblLeftAttributes.y);\n\t\t\tlblLeft.setAttribute('font-size', panelState ? \"3.5em\" : \"1em\");\n\n\t\t\tlblRightText.textContent = panelState ? rightLabel : options.labels.mode;\n\t\t\tlblRight.setAttribute('y', panelState ? Number(lblRightAttributes.y) + 40 : lblRightAttributes.y);\n\t\t\tlblRight.setAttribute('font-size', panelState ? \"3.5em\" : \"1em\");\n\n\t\t\telement.setAttribute('x', panelState ? lblAmbientAttributes.x : originalAttributes.x);\n\t\t\telement.setAttribute('x', panelState ? lblAmbientAttributes.x : originalAttributes.x);\n\t\t\telement.setAttribute('y', panelState ? lblAmbientAttributes.y : originalAttributes.y);\n\t\t\telement.setAttribute('font-size', panelState ? lblAmbientAttributes.size : originalAttributes.size);\n\n\t\t};\n\n\n\t\tfunction setTargetClick() {\n\n\t\t\ttargetPanel = targetPanel ? false : true;\n\t\t\tsetClass(lblMode, \"nodisplay\", targetPanel);\n\t\t\tswitchMainView(lblTarget, lblTargetAttributes, options.labels.set, options.labels.minus, options.labels.plus, targetPanel);\n\n\t\t\tlblTargetDec.setAttribute('font-size', targetPanel ? lblAmbientDecAttributes.size : lblTargetDecAttributes.size);\n\n\t\t\tif (targetPanel) {\n\t\t\t\tdocument.getElementById(\"btnLeft\").onclick = \"\";\n\t\t\t\tdocument.getElementById(\"btnRight\").onclick = \"\";\n\n\t\t\t\tdocument.getElementById(\"btnLeft\").onmousedown = function() {\n\t\t\t\t\tcalcTargetTemperature(\"-\");\n\t\t\t\t\tif (mousedownID == -1) { //Prevent multimple loops!\n\t\t\t\t\t\tmousedownID = setInterval(calcTargetTemperature, 500, '-');\n\t\t\t\t\t}\n\t\t\t\t};\n\t\t\t\tdocument.getElementById(\"btnLeft\").onmouseup = function() {\n\t\t\t\t\tif (mousedownID != -1) { //Only stop if exists\n\t\t\t\t\t\tclearInterval(mousedownID);\n\t\t\t\t\t\tmousedownID = -1;\n\t\t\t\t\t}\n\t\t\t\t};\n\n\t\t\t\tdocument.getElementById(\"btnRight\").onmousedown = function() {\n\t\t\t\t\tcalcTargetTemperature(\"+\");\n\t\t\t\t\tif (mousedownID == -1) { //Prevent multimple loops!\n\t\t\t\t\t\tmousedownID = setInterval(calcTargetTemperature, 500, '+');\n\t\t\t\t\t}\n\t\t\t\t};\n\t\t\t\tdocument.getElementById(\"btnRight\").onmouseup = function() {\n\t\t\t\t\tif (mousedownID != -1) { //Only stop if exists\n\t\t\t\t\t\tclearInterval(mousedownID);\n\t\t\t\t\t\tmousedownID = -1;\n\t\t\t\t\t}\n\t\t\t\t};\n\n\t\t\t\tlblTarget.onclick = function() {\n\t\t\t\t\tsetTargetClick();\n\t\t\t\t};\n\t\t\t} else {\n\t\t\t\tresetButton()\n\t\t\t}\n\t\t};\n\n\t\tfunction setModeClick() {\n\n\t\t\tmodePanel = modePanel ? false : true;\n\t\t\tsetClass(lblTarget, \"nodisplay\", modePanel);\n\t\t\tswitchMainView(lblMode, lblModeAttributes, options.labels.mode, options.labels.left, options.labels.right, modePanel);\n\n\t\t\tif (modePanel) {\n\n\t\t\t\tdocument.getElementById(\"btnLeft\").onclick = function() {\n\t\t\t\t\tmode = state.mode;\n\t\t\t\t\tmode = --mode < 0 ? properties.modes.length - 1 : mode;\n\t\t\t\t\tconsole.log(\"MODE :\" + mode);\n\t\t\t\t\tsetModeName(properties.modeNames[mode]);\n\t\t\t\t\tchkSwitchState();\n\t\t\t\t\tsendMsg();\n\t\t\t\t};\n\n\t\t\t\tdocument.getElementById(\"btnRight\").onclick = function() {\n\t\t\t\t\tmode = state.mode;\n\t\t\t\t\tmode = ++mode > properties.modes.length - 1 ? 0 : mode;\n\t\t\t\t\tconsole.log(\"MODE :\" + mode);\n\t\t\t\t\tsetModeName(properties.modeNames[mode]);\n\t\t\t\t\tchkSwitchState();\n\t\t\t\t\tsendMsg();\n\t\t\t\t};\n\n\t\t\t\tlblMode.onclick = function() {\n\t\t\t\t\tsetModeClick();\n\t\t\t\t};\n\t\t\t} else {\n\t\t\t\tresetButton()\n\t\t\t}\n\t\t};\n\n\t\tfunction setModeName(modeName) {\n\t\t\tlblMode.textContent = properties.modes[properties.modeNames.indexOf(modeName)].icon;\n\t\t\tlblMode.style.fill = properties.modes[properties.modeNames.indexOf(modeName)].color;\n\t\t\tstate.mode = properties.modeNames.indexOf(modeName);\n\t\t};\n\t\t\n\t\tfunction sendMsg() {\n\t\t\tif (typeof options.onChangeState == 'function') {\n\t\t\t\toptions.onChangeState(state.switch_state);\n\t\t\t}\n\t\t};\n\n\t\tfunction render() {\n\t\t\tconsole.log(\"RENDER\");\n\t\t\tsetAmbientTemperature(self.ambient_temperature);\n\t\t\tsetTargetTemperature(self.target_temperature);\n\t\t\tsetModeName(self.mode_name);\n\t\t\tchkSwitchState();\n\t\t};\n\n\t};\n})();\n\nvar initializing = true;\n\n(function(scope) {\n\tvar ghostThermostat = new ghostThermostatDial(document.getElementById('GhostThermostat'), {\n\t\tonChangeState: function() {\n\t\t\tvar p = {\n\t\t\t\t\"ambient_temperature\": ghostThermostat.ambient_temperature,\n\t\t\t\t\"target_temperature\": ghostThermostat.target_temperature,\n\t\t\t\t\"mode\": ghostThermostat.mode_name,\n\t\t\t\t\"switch_state\": ghostThermostat.switch_state,\n\t\t\t\t\"away\": ghostThermostat.away\n\t\t\t};\n\t\t\tscope.send({\n\t\t\t\ttopic: \"changed_state\",\n\t\t\t\tpayload: p\n\t\t\t});\n\t\t}\n\t});\n\n\tscope.$watch('msg', function(data) {\n\t\tif (initializing) {\n\t\t\tinitializing = false;\n\t\t} else {\n\t\t\tghostThermostat.ambient_temperature = data.payload.ambient_temperature || ghostThermostat.ambient_temperature;\n\t\t\tghostThermostat.target_temperature = data.payload.target_temperature || ghostThermostat.target_temperature;\n\t\t\tghostThermostat.mode_name = data.payload.mode || ghostThermostat.mode_name;\n\t\t\tghostThermostat.switch_state = data.payload.switch_state || ghostThermostat.switch_state;\n\t\t\tghostThermostat.away = data.payload.away || ghostThermostat.away;\n\t\t}\n\t});\n})(scope);\n</script>",
+        "width": 6,
+        "height": 6,
+        "format": "<style>\n    @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');\n    \n    svg {\n        transition: all .6s cubic-bezier(0.175, 0.885, 0.32, 1.2);\n    }\n\n    stop {\n        transition: all .5s;\n    }\n    \n\t{{'#GhostThermostat' + $id}} .led {\n    \t-webkit-transition: all 0.5s;\n    \ttransition: all 0.5s;\n    \tfill: url({{'#GhostThermostat' + $id + 'ledColor'}});\n    }\n    \n    {{'#GhostThermostat' + $id}} .fa-text {\n       font-family: FontAwesome !important; \n    }\n    {{'#GhostThermostat' + $id}} .dial {\n        -webkit-user-select: none;\n        -moz-user-select: none;\n        -ms-user-select: none;\n        user-select: none;\n    }\n    {{'#GhostThermostat' + $id}} .qGradient {\n       fill : url({{'#GhostThermostat' + $id + 'qGradient'}});\n    }\n    {{'#GhostThermostat' + $id}} .qGradientT {\n        fill : url({{'#GhostThermostat' + $id + 'qGradientT'}});\n    }\n    {{'#GhostThermostat' + $id}} .eGradient {\n        fill : url({{'#GhostThermostat' + $id + 'eGradient'}});\n    }\n    {{'#GhostThermostat' + $id}} .lbl {\n        font-family: 'Roboto', sans-serif;\n        text-anchor: middle;\n        fill : #ffffff;\n        clip-path: url({{'#GhostThermostat' + $id + 'qClip'}});\n    }\n    {{'#GhostThermostat' + $id}} .lblDial {\n        fill: #dddddd;\n    }\n    \n    {{'#GhostThermostat' + $id}} .lblAmbient {\n        font-weight: 400;\n        clip-path: url({{'#GhostThermostat' + $id + 'qClip'}});\n    }\n    \n    {{'#GhostThermostat' + $id}} .lblAmbient tspan {\n        font-weight: 400;\n    }\n    \n    {{'#GhostThermostat' + $id}} .lblTarget {\n        font-weight: 400;\n        fill: orange;\n    }\n    \n    {{'#GhostThermostat' + $id}} .lblTarget tspan {\n        font-weight: 400;\n        fill: orange;\n        clip-path: url({{'#GhostThermostat' + $id + 'qClip'}});\n    }    \n    \n    {{'#GhostThermostat' + $id}} .nodisplay {\n        display: none !important;\n    }\n    \n    {{'#GhostThermostat' + $id}} .icon {\n        font-family: FontAwesome !important;\n    }\n    \n    {{'#GhostThermostat' + $id}} .animate {\n        transition: all 0.5s;\n    }\n\n</style>\n<div id=\"{{'GhostThermostat' + $id}}\"></div> \n<script>\nvar mousedownID = -1;\nvar ghostThermostatDial = (function() {\n    console.log(\"START\");\n\n    function createSVGElement(tag, attributes, appendTo) {\n        var element = document.createElementNS('http://www.w3.org/2000/svg', tag);\n        attr(element, attributes);\n        if (appendTo) {\n            appendTo.appendChild(element);\n        }\n        return element;\n    }\n\n    function attr(element, attrs) {\n        for (var i in attrs) {\n            element.setAttribute(i, attrs[i]);\n        }\n    }\n\n    function setClass(el, className, state) {\n        el.classList[state ? 'add' : 'remove'](className);\n    }\n\n    return function(targetElement, options) {\n        console.log(\"RET FUN\");\n        var self = this;\n\n        /*\n         * Options\n         */\n        options = options || {};\n        options = {\n            diameter: options.diameter || 400,\n            mintemp: options.mintemp || 10, // Minimum value for target temperature\n            maxtemp: options.maxtemp || 30, // Maximum value for target temperature\n            ledColors: {\n                'off': 'rgb(143,141,141)',\n                'heating': 'rgb(255,128,0)',\n                'cooling': 'rgb(81,170,214)'\n            }, //Led Ring Colors\n            labels: {\n                ambient: \"AMBIENT\",\n                set: \"SET\",\n                mode: \"MODE\",\n                minus: \"-\",\n                plus: \"+\",\n                left: \"<\",\n                right: \">\"\n            },\n            onChangeState: options.onChangeState || function() {} // Function called when  switch state change\n        };\n\n        /*\n         * Properties\n         */\n        var properties = {\n            radius: options.diameter / 2,\n            modes: [{\n                    label: \"heating\",\n                    icon: \"\\uf06d\",\n                    color: \"orange\"\n                }, {\n                    label: 'cooling',\n                    icon: \"\\uf2dc\",\n                    color: \"rgb(81,170,214)\"\n                }, {\n                    label: \"off\",\n                    icon: \"\\uf011\",\n                    color: \"rgb(230,0,0)\"\n                }\n                /*, {\n\t\t\t\tlabel: 'away',\n\t\t\t\ticon: \"\\uf1ce\",\n\t\t\t\tcolor: \"gray\"\n\t\t\t} */\n            ],\n            modeNames: [\"heating\", \"cooling\", \"off\"],\n            swtitchStates: [\"heating\", \"cooling\", \"off\"]\n        };\n\n        /*\n         * Object state\n         */\n        var state = {\n            target_temperature: options.mintemp,\n            ambient_temperature: options.maxtemp,\n            mode: properties.modes.indexOf(properties.modes[0]),\n            switch_state: 'off',\n            away: false\n        };\n\n        /*\n         * Property getter / setters\n         */\n        Object.defineProperty(this, 'target_temperature', {\n            get: function() {\n                return state.target_temperature;\n            },\n            set: function(val) {\n                state.target_temperature = rangedTemperature(+val);\n                //render()\n            }\n        });\n\n        Object.defineProperty(this, 'ambient_temperature', {\n            get: function() {\n                return state.ambient_temperature;\n            },\n            set: function(val) {\n                state.ambient_temperature = +val;\n                render();\n            }\n        });\n\n        Object.defineProperty(this, 'mode_name', {\n            get: function() {\n                return properties.modeNames[state.mode];\n            },\n            set: function(val) {\n                if (properties.modeNames.indexOf(val) >= 0) {\n                    state.mode = properties.modeNames.indexOf(val);\n                    //render();\n                }\n            }\n        });\n\n        Object.defineProperty(this, 'switch_state', {\n            get: function() {\n                return state.switch_state;\n            },\n            set: function(val) {\n                if (properties.swtitchStates.indexOf(val) >= 0) {\n                    state.switch_state = val;\n                    //render();\n                }\n            }\n        });\n\n\n        function str2bool(strvalue) {\n            return (strvalue && typeof strvalue == 'string') ? (strvalue.toLowerCase() == 'true') : (strvalue == true);\n        }\n\n        Object.defineProperty(this, 'away', {\n            get: function() {\n                return state.away;\n            },\n            set: function(val) {\n                state.away = !!str2bool(val);\n                //render();\n            }\n        });\n\n\n        /*\n         * SVG\n         */\n        var svg = createSVGElement('svg', {\n            width: '100%', //options.diameter+'px',\n            height: '100%', //options.diameter+'px',\n            viewBox: '0 0 ' + options.diameter + ' ' + options.diameter,\n            class: 'dial'\n        }, targetElement);\n\n        // DEFS \n        var defs = createSVGElement('defs', null, svg);\n\n        var qgradient = createSVGElement('linearGradient', {\n            'id': targetElement.getAttribute('id') + 'qGradient',\n            gradientTransform: 'rotate(65)'\n        }, defs);\n        var stop = createSVGElement('stop', {\n            'offset': '50%',\n            'stop-color': 'rgb(86,89,94)'\n        }, qgradient);\n        var stop = createSVGElement('stop', {\n            'offset': '65%',\n            'stop-color': 'rgb(30,30,30)'\n        }, qgradient);\n\n        var qGradientT = createSVGElement('linearGradient', {\n            'id': targetElement.getAttribute('id') + 'qGradientT',\n            gradientTransform: 'rotate(65)'\n        }, defs);\n        var stop = createSVGElement('stop', {\n            'offset': '55%',\n            'stop-color': '#3b3e43',\n            'stop-opacity': '1'\n        }, qGradientT);\n        var stop = createSVGElement('stop', {\n            'offset': '90%',\n            'stop-color': 'rgb(0,0,0)',\n            'stop-opacity': '1'\n        }, qGradientT);\n\n        var clipPath = createSVGElement('clipPath', {\n            'id': targetElement.getAttribute('id') + 'qClip',\n        }, defs);\n        var circle = createSVGElement('circle', {\n            cx: properties.radius,\n            cy: properties.radius,\n            r: properties.radius - 25\n        }, clipPath);\n\n\n        var ledRingGradient = createSVGElement('radialGradient', {\n            'id': targetElement.getAttribute('id') + 'ledColor',\n            'cx': \"50%\",\n            'cy': \"50%\",\n            'r': \"95%\",\n            'fx': \"50%\",\n            'fy': \"50%\"\n        }, defs);\n        var ledRingGradientColorIn = createSVGElement('stop', {\n            'offset': '45%',\n            'stop-color': 'rgb(255,0,130)',\n            'stop-opacity': '1'\n        }, ledRingGradient);\n        var ledRingGradientColorOut = createSVGElement('stop', {\n            'offset': '65%',\n            'stop-color': 'rgb(0,0,0)',\n            'stop-opacity': '1'\n        }, ledRingGradient);\n\n        var egradient = createSVGElement('linearGradient', {\n            'id': targetElement.getAttribute('id') + 'eGradient',\n            gradientTransform: 'rotate(55)'\n        }, defs);\n        var stop = createSVGElement('stop', {\n            'offset': '55%',\n            'stop-color': '#888888',\n            'stop-opacity': '1'\n        }, egradient);\n        var stop = createSVGElement('stop', {\n            'offset': '95%',\n            'stop-color': '#333333',\n            'stop-opacity': '1'\n        }, egradient);\n\n        // DIAL\n        var circle = createSVGElement('circle', {\n            cx: properties.radius,\n            cy: properties.radius,\n            r: properties.radius,\n            class: 'eGradient'\n        }, svg);\n        var ledRing = createSVGElement('circle', {\n            cx: properties.radius,\n            cy: properties.radius,\n            r: properties.radius - 3,\n            'stroke': 'black',\n            'stroke-width': '1',\n            class: 'led'\n        }, svg);\n        var circle = createSVGElement('circle', {\n            cx: properties.radius,\n            cy: properties.radius,\n            r: properties.radius - 20,\n            class: 'qGradient'\n        }, svg);\n        var circle = createSVGElement('circle', {\n            cx: properties.radius,\n            cy: properties.radius,\n            r: properties.radius - 25,\n            class: 'qGradient'\n        }, svg);\n        var lblMain = createSVGElement('text', {\n            x: properties.radius,\n            y: 70,\n            class: 'lbl lblDial'\n        }, svg);\n        var lblMainText = document.createTextNode(options.labels.ambient);\n        lblMain.appendChild(lblMainText);\n\n        var lblAmbient = createSVGElement('text', {\n            x: properties.radius,\n            y: 210,\n            'font-size': '160',\n            class: 'lbl lblAmbient'\n        }, svg);\n        var lblAmbientText = document.createTextNode('21');\n        lblAmbient.appendChild(lblAmbientText);\n        var lblAmbientDec = createSVGElement('tspan', {\n            'font-size': '60',\n        }, lblAmbient);\n        var lblAmbientDecText = document.createTextNode('.5');\n        lblAmbientDec.appendChild(lblAmbientDecText);\n\n        var line = createSVGElement('line', {\n            x1: 55,\n            y1: properties.radius + 35,\n            x2: options.diameter - 55,\n            y2: properties.radius + 35,\n            'stroke': '#DDDDDD',\n            'stroke-width': '1',\n            'opacity': '0.8'\n        }, svg);\n\n        var lblLeft = createSVGElement('text', {\n            x: 125,\n            y: properties.radius + 75,\n            class: 'lbl lblDial'\n        }, svg);\n        var lblLeftText = document.createTextNode(options.labels.set);\n        lblLeft.appendChild(lblLeftText);\n\n        var lblTarget = createSVGElement('text', {\n            x: 125,\n            y: properties.radius + 115,\n            'font-size': '35',\n            class: 'lbl lblTarget',\n            'id': targetElement.getAttribute('id') + 'lblTarget'\n        }, svg);\n        var lblTargetText = document.createTextNode('20');\n        lblTarget.appendChild(lblTargetText);\n\n        var lblTargetDec = createSVGElement('tspan', {\n            'font-size': '20',\n        }, lblTarget);\n\n        var lblTargetDecText = document.createTextNode('.5');\n        lblTargetDec.appendChild(lblTargetDecText);\n\n        var lblRight = createSVGElement('text', {\n            x: options.diameter - 125,\n            y: properties.radius + 75,\n            class: 'lbl lblDial'\n        }, svg);\n        var lblRightText = document.createTextNode(options.labels.mode);\n        lblRight.appendChild(lblRightText);\n\n        var lblMode = createSVGElement('text', {\n            x: options.diameter - 125,\n            y: properties.radius + 115,\n            'font-size': '35',\n            class: 'lbl lblTarget icon',\n            'id' : targetElement.getAttribute('id') + 'lblMode'\n        }, svg);\n        var lblModeText = document.createTextNode(properties.modes[0].icon);\n        lblMode.appendChild(lblModeText);\n\n        var btnSet = createSVGElement('g', {\n            transform: 'translate(200,200)'\n        }, svg);\n        var btnLeft = createSVGElement('path', {\n            d: 'M0,40 L0,175   A175,175 0 0,1 -175,40    z',\n            fill: 'blue',\n            opacity: '0',\n            'id': targetElement.getAttribute('id') + 'btnLeft'\n        }, btnSet);\n        var btnRight = createSVGElement('path', {\n            d: 'M0,40 L175,40   A175,175 0 0,1    0,175  z',\n            fill: 'red',\n            opacity: '0',\n            'id': targetElement.getAttribute('id') + 'btnRight'\n        }, btnSet);\n\n\n\n        btnLeft.onclick = function() {\n            setTargetClick();\n        };\n\n        btnRight.onclick = function() {\n            setModeClick();\n        };\n\n        var targetPanel = false;\n        var modePanel = false;\n\n        var lblAmbientAttributes = {\n            x: lblAmbient.getAttribute('x'),\n            y: lblAmbient.getAttribute('y'),\n            size: lblAmbient.getAttribute('font-size')\n        };\n\n        var lblAmbientDecAttributes = {\n            x: lblAmbientDec.getAttribute('x'),\n            y: lblAmbientDec.getAttribute('y'),\n            size: lblAmbientDec.getAttribute('font-size')\n        };\n\n        var lblTargetAttributes = {\n            x: lblTarget.getAttribute('x'),\n            y: lblTarget.getAttribute('y'),\n            size: lblTarget.getAttribute('font-size')\n        };\n\n        var lblTargetDecAttributes = {\n            x: lblTargetDec.getAttribute('x'),\n            y: lblTargetDec.getAttribute('y'),\n            size: lblTargetDec.getAttribute('font-size')\n        };\n\n        var lblModeAttributes = {\n            x: lblMode.getAttribute('x'),\n            y: lblMode.getAttribute('y'),\n            size: lblMode.getAttribute('font-size')\n        };\n\n        var lblRightAttributes = {\n            x: lblRight.getAttribute('x'),\n            y: lblRight.getAttribute('y'),\n            size: lblRight.getAttribute('font-size')\n        };\n\n        var lblLeftAttributes = {\n            x: lblLeft.getAttribute('x'),\n            y: lblLeft.getAttribute('y'),\n            size: lblLeft.getAttribute('font-size')\n        };\n\n        render();\n\n        function setAmbientTemperature(ambientTemp) {\n            var splitValues = separateDecValue(ambientTemp);\n            lblAmbientText.textContent = splitValues.int;\n            lblAmbientDecText.textContent = splitValues.dec;\n        };\n\n\n        function calcTargetTemperature(operation) {\n            let currentTemp = Number(parseFloat(lblTargetText.textContent + lblTargetDecText.textContent)).toFixed(1);\n            let targetTemp = (operation == '-' ? Number(Number(currentTemp) - 0.5).toFixed(1) : Number(Number(currentTemp) + 0.5).toFixed(1));\n            targetTemp = rangedTemperature(targetTemp);\n            setTargetTemperature(targetTemp);\n            chkSwitchState();\n        };\n\n        function setTargetTemperature(targetTemp) {\n            var splitValues = separateDecValue(targetTemp);\n            lblTargetText.textContent = splitValues.int;\n            lblTargetDecText.textContent = splitValues.dec;\n            if (state.target_temperature != targetTemp) {\n                state.target_temperature = targetTemp\n                sendMsg();\n            };\n        };\n\n        function separateDecValue(floatFalue) {\n            var int = Math.floor(floatFalue);\n            var dec = Math.floor(((floatFalue % 1) * 10)) > 0 ? (\".\" + Math.floor(((floatFalue % 1) * 10))) : \"\";\n            return {\n                int,\n                dec\n            };\n        };\n\n        function rangedTemperature(temperature) {\n            temperature = temperature < options.mintemp ? options.maxtemp : temperature;\n            temperature = temperature > options.maxtemp ? options.mintemp : temperature;\n            return temperature;\n        };\n\n        function chkSwitchState() {\n            console.log(\"chkSwitchState\");\n            var switchState = state.switch_state;\n            switch (state.mode) {\n                case 0:\n                    switchState = state.ambient_temperature < state.target_temperature ? 'heating' : 'off';\n                    break;\n                case 1:\n                    switchState = state.ambient_temperature > state.target_temperature ? 'cooling' : 'off';\n                    break;\n                default:\n                    switchState = 'off';\n            };\n\n            ledRingGradientColorIn.setAttribute('stop-color', options.ledColors[state.switch_state]);\n\n            if (state.switch_state != switchState) {\n                state.switch_state = switchState;\n                sendMsg();\n            };\n        };\n\n\n        function resetButton() {\n            btnLeft.onmousedown = \"\";\n            btnLeft.onmouseup = \"\";\n            btnLeft.onclick = function() {\n                setTargetClick();\n            };\n            btnRight.onmousedown = \"\";\n            btnRight.onmouseup = \"\";\n            btnRight.onclick = function() {\n                setModeClick();\n            };\n        };\n\n        function switchMainView(element, originalAttributes, mainLabel, leftLabel, rightLabel, panelState) {\n            setClass(lblAmbient, \"nodisplay\", panelState);\n            setClass(lblMain, \"animate\", panelState);\n            setClass(lblLeft, \"animate\", panelState);\n            setClass(lblRight, \"animate\", panelState);\n            setClass(element, \"animate\", panelState);\n\n            lblMainText.textContent = panelState ? mainLabel : options.labels.ambient;\n            lblLeftText.textContent = panelState ? leftLabel : options.labels.set;\n\n            lblLeft.setAttribute('y', panelState ? Number(lblLeftAttributes.y) + 40 : lblLeftAttributes.y);\n            lblLeft.setAttribute('font-size', panelState ? \"3.5em\" : \"1em\");\n\n            lblRightText.textContent = panelState ? rightLabel : options.labels.mode;\n            lblRight.setAttribute('y', panelState ? Number(lblRightAttributes.y) + 40 : lblRightAttributes.y);\n            lblRight.setAttribute('font-size', panelState ? \"3.5em\" : \"1em\");\n\n            element.setAttribute('x', panelState ? lblAmbientAttributes.x : originalAttributes.x);\n            element.setAttribute('x', panelState ? lblAmbientAttributes.x : originalAttributes.x);\n            element.setAttribute('y', panelState ? lblAmbientAttributes.y : originalAttributes.y);\n            element.setAttribute('font-size', panelState ? lblAmbientAttributes.size : originalAttributes.size);\n\n        };\n\n\n        function setTargetClick() {\n\n            targetPanel = targetPanel ? false : true;\n            setClass(lblMode, \"nodisplay\", targetPanel);\n            switchMainView(lblTarget, lblTargetAttributes, options.labels.set, options.labels.minus, options.labels.plus, targetPanel);\n\n            lblTargetDec.setAttribute('font-size', targetPanel ? lblAmbientDecAttributes.size : lblTargetDecAttributes.size);\n\n            if (targetPanel) {\n                btnLeft.onclick = \"\";\n                btnRight.onclick = \"\";\n\n                btnLeft.onmousedown = function() {\n                    calcTargetTemperature(\"-\");\n                    if (mousedownID == -1) { //Prevent multimple loops!\n                        mousedownID = setInterval(calcTargetTemperature, 500, '-');\n                    }\n                };\n                btnLeft.onmouseup = function() {\n                    if (mousedownID != -1) { //Only stop if exists\n                        clearInterval(mousedownID);\n                        mousedownID = -1;\n                    }\n                };\n\n                btnRight.onmousedown = function() {\n                    calcTargetTemperature(\"+\");\n                    if (mousedownID == -1) { //Prevent multimple loops!\n                        mousedownID = setInterval(calcTargetTemperature, 500, '+');\n                    }\n                };\n                btnRight.onmouseup = function() {\n                    if (mousedownID != -1) { //Only stop if exists\n                        clearInterval(mousedownID);\n                        mousedownID = -1;\n                    }\n                };\n\n                lblTarget.onclick = function() {\n                    setTargetClick();\n                };\n            } else {\n                resetButton()\n            }\n        };\n\n        function setModeClick() {\n\n            modePanel = modePanel ? false : true;\n            setClass(lblTarget, \"nodisplay\", modePanel);\n            switchMainView(lblMode, lblModeAttributes, options.labels.mode, options.labels.left, options.labels.right, modePanel);\n\n            if (modePanel) {\n\n                btnLeft.onclick = function() {\n                    mode = state.mode;\n                    mode = --mode < 0 ? properties.modes.length - 1 : mode;\n                    console.log(\"MODE :\" + mode);\n                    setModeName(properties.modeNames[mode]);\n                    chkSwitchState();\n                    sendMsg();\n                };\n\n                btnRight.onclick = function() {\n                    mode = state.mode;\n                    mode = ++mode > properties.modes.length - 1 ? 0 : mode;\n                    console.log(\"MODE :\" + mode);\n                    setModeName(properties.modeNames[mode]);\n                    chkSwitchState();\n                    sendMsg();\n                };\n//                document.getElementById(targetElement.getAttribute('id') + \"lblMode\").onclick = function() {\n                lblMode.onclick = function() {\n                    setModeClick();\n                };\n            } else {\n                resetButton()\n            }\n        };\n\n        function setModeName(modeName) {\n            lblMode.textContent = properties.modes[properties.modeNames.indexOf(modeName)].icon;\n            lblMode.style.fill = properties.modes[properties.modeNames.indexOf(modeName)].color;\n            state.mode = properties.modeNames.indexOf(modeName);\n        };\n\n        function sendMsg() {\n            if (typeof options.onChangeState == 'function') {\n                options.onChangeState(state.switch_state);\n            }\n        };\n\n        function render() {\n            console.log(\"RENDER\");\n            setAmbientTemperature(self.ambient_temperature);\n            setTargetTemperature(self.target_temperature);\n            setModeName(self.mode_name);\n            chkSwitchState();\n        };\n\n    };\n})();\n\nvar initializing = true;\n(function(scope) {\n    console.log(\"scope.id = GhostThermostat\" + scope.$id);\n    $(function() {\n        var ghostThermostat = new ghostThermostatDial(document.getElementById('GhostThermostat' + scope.$id), {\n            onChangeState: function() {\n                var p = {\n                    \"ambient_temperature\": ghostThermostat.ambient_temperature,\n                    \"target_temperature\": ghostThermostat.target_temperature,\n                    \"mode\": ghostThermostat.mode_name,\n                    \"switch_state\": ghostThermostat.switch_state,\n                    \"away\": ghostThermostat.away\n                };\n                scope.send({\n                    topic: \"changed_state\",\n                    payload: p\n                });\n            }\n        });\n\n\n        scope.$watch('msg', function(data) {\n            if (initializing) {\n                initializing = false;\n            } else {\n                ghostThermostat.ambient_temperature = data.payload.ambient_temperature || ghostThermostat.ambient_temperature;\n                ghostThermostat.target_temperature = data.payload.target_temperature || ghostThermostat.target_temperature;\n                ghostThermostat.mode_name = data.payload.mode || ghostThermostat.mode_name;\n                ghostThermostat.switch_state = data.payload.switch_state || ghostThermostat.switch_state;\n                ghostThermostat.away = data.payload.away || ghostThermostat.away;\n            }\n        });\n    });\n})(scope);\n</script>",
         "storeOutMessages": true,
         "fwdInMessages": false,
         "resendOnRefresh": false,
@@ -25,6 +33,463 @@
         "icon": "font-awesome/fa-tachometer"
     },
     {
+        "id": "bf9d08424ced480e",
+        "type": "ui_button",
+        "z": "d6c548e700f619c9",
+        "name": "HomeButton",
+        "group": "64a50a7178579a49",
+        "order": 2,
+        "width": 2,
+        "height": 1,
+        "passthru": false,
+        "label": "<i class=\"fa fa-home fa-3x\" aria-hidden=\"true\"></i>",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "{\"tab\":\"Home\"}",
+        "payloadType": "json",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 210,
+        "y": 460,
+        "wires": [
+            [
+                "02ba9743923d7d50"
+            ]
+        ]
+    },
+    {
+        "id": "02ba9743923d7d50",
+        "type": "ui_ui_control",
+        "z": "d6c548e700f619c9",
+        "name": "",
+        "events": "all",
+        "x": 360,
+        "y": 460,
+        "wires": [
+            [
+                "79dc03dc07fc1f63"
+            ]
+        ]
+    },
+    {
+        "id": "a2034221305481fb",
+        "type": "rpi-gpio out",
+        "z": "d6c548e700f619c9",
+        "name": "Heating Realy",
+        "pin": "17",
+        "set": false,
+        "level": "0",
+        "freq": "",
+        "out": "out",
+        "bcm": true,
+        "x": 1720,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "9854a9e5fd2ac2b8",
+        "type": "switch",
+        "z": "d6c548e700f619c9",
+        "name": "",
+        "property": "payload.switch_state",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "heating",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "off",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "cooling",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 3,
+        "x": 1270,
+        "y": 420,
+        "wires": [
+            [
+                "2e0d56dc310a5e61"
+            ],
+            [
+                "8737c1726c630510"
+            ],
+            [
+                "f8f33ee589b8e040"
+            ]
+        ]
+    },
+    {
+        "id": "edbf660c12076053",
+        "type": "comment",
+        "z": "d6c548e700f619c9",
+        "name": "Switch  - heating - off - cooling",
+        "info": "Switch\n\noutput 1: msg.payload.switch_state == heating\n\noutput 2: msg.payload.switch_state == off\n\noutput 3: msg.payload.switch_state == cooling\n",
+        "x": 1260,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "2e0d56dc310a5e61",
+        "type": "change",
+        "z": "d6c548e700f619c9",
+        "name": "change to true",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1500,
+        "y": 380,
+        "wires": [
+            [
+                "a2034221305481fb"
+            ]
+        ]
+    },
+    {
+        "id": "8737c1726c630510",
+        "type": "change",
+        "z": "d6c548e700f619c9",
+        "name": "change to false",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "false",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1500,
+        "y": 420,
+        "wires": [
+            [
+                "a2034221305481fb",
+                "16e0d4aa9dad30b9"
+            ]
+        ]
+    },
+    {
+        "id": "16e0d4aa9dad30b9",
+        "type": "rpi-gpio out",
+        "z": "d6c548e700f619c9",
+        "name": "Cooling Realy",
+        "pin": "12",
+        "set": "",
+        "level": "0",
+        "freq": "",
+        "out": "out",
+        "bcm": true,
+        "x": 1720,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "f8f33ee589b8e040",
+        "type": "change",
+        "z": "d6c548e700f619c9",
+        "name": "change to true",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1500,
+        "y": 460,
+        "wires": [
+            [
+                "16e0d4aa9dad30b9"
+            ]
+        ]
+    },
+    {
+        "id": "2d54542cf9c837f1",
+        "type": "debug",
+        "z": "d6c548e700f619c9",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1270,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "8685e15f01f81c6a",
+        "type": "mqtt in",
+        "z": "d6c548e700f619c9",
+        "name": "",
+        "topic": "ghostnet/ghostnrs/temperature",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "c5db38b6cf8d6851",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 270,
+        "y": 340,
+        "wires": [
+            [
+                "3225a79cf0a709bb",
+                "79dc03dc07fc1f63"
+            ]
+        ]
+    },
+    {
+        "id": "3225a79cf0a709bb",
+        "type": "change",
+        "z": "d6c548e700f619c9",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.humidity",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 560,
+        "y": 380,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "79dc03dc07fc1f63",
+        "type": "function",
+        "z": "d6c548e700f619c9",
+        "name": "ambient_temperature",
+        "func": "msg.topic = 'ambient_temperature';\nglobal.set(\"nest1_ambient_temperature\", msg.payload.temperature || global.get(\"nest1_ambient_temperature\") || 0);\nglobal.set(\"humidity\", msg.payload.humidity);\nvar data = {\n    'ambient_temperature': global.get(\"nest1_ambient_temperature\") || 0,\n    'target_temperature':  global.get(\"nest1_target_temperature\") || 0,\n    'mode' : \"off\",\n}\nmsg.payload = data;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 420,
+        "wires": [
+            [
+                "ab8fb1c28921f1dd",
+                "ef111a4ad5405fc8"
+            ]
+        ]
+    },
+    {
+        "id": "ef111a4ad5405fc8",
+        "type": "debug",
+        "z": "d6c548e700f619c9",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 870,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "88627edf9ddb9a4c",
+        "type": "ui_template",
+        "z": "d6c548e700f619c9",
+        "group": "9c90a075584ede2b",
+        "name": "GhostThermostat",
+        "order": 2,
+        "width": 6,
+        "height": 6,
+        "format": "<style>\n    @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');\n    \n    svg {\n        transition: all .6s cubic-bezier(0.175, 0.885, 0.32, 1.2);\n    }\n\n    stop {\n        transition: all .5s;\n    }\n    \n\t{{'#GhostThermostat' + $id}} .led {\n    \t-webkit-transition: all 0.5s;\n    \ttransition: all 0.5s;\n    \tfill: url({{'#GhostThermostat' + $id + 'ledColor'}});\n    }\n    \n    {{'#GhostThermostat' + $id}} .fa-text {\n       font-family: FontAwesome !important; \n    }\n    {{'#GhostThermostat' + $id}} .dial {\n        -webkit-user-select: none;\n        -moz-user-select: none;\n        -ms-user-select: none;\n        user-select: none;\n    }\n    {{'#GhostThermostat' + $id}} .qGradient {\n       fill : url({{'#GhostThermostat' + $id + 'qGradient'}});\n    }\n    {{'#GhostThermostat' + $id}} .qGradientT {\n        fill : url({{'#GhostThermostat' + $id + 'qGradientT'}});\n    }\n    {{'#GhostThermostat' + $id}} .eGradient {\n        fill : url({{'#GhostThermostat' + $id + 'eGradient'}});\n    }\n    {{'#GhostThermostat' + $id}} .lbl {\n        font-family: 'Roboto', sans-serif;\n        text-anchor: middle;\n        fill : #ffffff;\n        clip-path: url({{'#GhostThermostat' + $id + 'qClip'}});\n    }\n    {{'#GhostThermostat' + $id}} .lblDial {\n        fill: #dddddd;\n    }\n    \n    {{'#GhostThermostat' + $id}} .lblAmbient {\n        font-weight: 400;\n        clip-path: url({{'#GhostThermostat' + $id + 'qClip'}});\n    }\n    \n    {{'#GhostThermostat' + $id}} .lblAmbient tspan {\n        font-weight: 400;\n    }\n    \n    {{'#GhostThermostat' + $id}} .lblTarget {\n        font-weight: 400;\n        fill: orange;\n    }\n    \n    {{'#GhostThermostat' + $id}} .lblTarget tspan {\n        font-weight: 400;\n        fill: orange;\n        clip-path: url({{'#GhostThermostat' + $id + 'qClip'}});\n    }    \n    \n    {{'#GhostThermostat' + $id}} .nodisplay {\n        display: none !important;\n    }\n    \n    {{'#GhostThermostat' + $id}} .icon {\n        font-family: FontAwesome !important;\n    }\n    \n    {{'#GhostThermostat' + $id}} .animate {\n        transition: all 0.5s;\n    }\n\n</style>\n<div id=\"{{'GhostThermostat' + $id}}\"></div> \n<script>\nvar mousedownID = -1;\nvar ghostThermostatDial = (function() {\n    console.log(\"START\");\n\n    function createSVGElement(tag, attributes, appendTo) {\n        var element = document.createElementNS('http://www.w3.org/2000/svg', tag);\n        attr(element, attributes);\n        if (appendTo) {\n            appendTo.appendChild(element);\n        }\n        return element;\n    }\n\n    function attr(element, attrs) {\n        for (var i in attrs) {\n            element.setAttribute(i, attrs[i]);\n        }\n    }\n\n    function setClass(el, className, state) {\n        el.classList[state ? 'add' : 'remove'](className);\n    }\n\n    return function(targetElement, options) {\n        console.log(\"RET FUN\");\n        var self = this;\n\n        /*\n         * Options\n         */\n        options = options || {};\n        options = {\n            diameter: options.diameter || 400,\n            mintemp: options.mintemp || 10, // Minimum value for target temperature\n            maxtemp: options.maxtemp || 30, // Maximum value for target temperature\n            ledColors: {\n                'off': 'rgb(143,141,141)',\n                'heating': 'rgb(255,128,0)',\n                'cooling': 'rgb(81,170,214)'\n            }, //Led Ring Colors\n            labels: {\n                ambient: \"AMBIENT\",\n                set: \"SET\",\n                mode: \"MODE\",\n                minus: \"-\",\n                plus: \"+\",\n                left: \"<\",\n                right: \">\"\n            },\n            onChangeState: options.onChangeState || function() {} // Function called when  switch state change\n        };\n\n        /*\n         * Properties\n         */\n        var properties = {\n            radius: options.diameter / 2,\n            modes: [{\n                    label: \"heating\",\n                    icon: \"\\uf06d\",\n                    color: \"orange\"\n                }, {\n                    label: 'cooling',\n                    icon: \"\\uf2dc\",\n                    color: \"rgb(81,170,214)\"\n                }, {\n                    label: \"off\",\n                    icon: \"\\uf011\",\n                    color: \"rgb(230,0,0)\"\n                }\n                /*, {\n\t\t\t\tlabel: 'away',\n\t\t\t\ticon: \"\\uf1ce\",\n\t\t\t\tcolor: \"gray\"\n\t\t\t} */\n            ],\n            modeNames: [\"heating\", \"cooling\", \"off\"],\n            swtitchStates: [\"heating\", \"cooling\", \"off\"]\n        };\n\n        /*\n         * Object state\n         */\n        var state = {\n            target_temperature: options.mintemp,\n            ambient_temperature: options.maxtemp,\n            mode: properties.modes.indexOf(properties.modes[0]),\n            switch_state: 'off',\n            away: false\n        };\n\n        /*\n         * Property getter / setters\n         */\n        Object.defineProperty(this, 'target_temperature', {\n            get: function() {\n                return state.target_temperature;\n            },\n            set: function(val) {\n                state.target_temperature = rangedTemperature(+val);\n                //render()\n            }\n        });\n\n        Object.defineProperty(this, 'ambient_temperature', {\n            get: function() {\n                return state.ambient_temperature;\n            },\n            set: function(val) {\n                state.ambient_temperature = +val;\n                render();\n            }\n        });\n\n        Object.defineProperty(this, 'mode_name', {\n            get: function() {\n                return properties.modeNames[state.mode];\n            },\n            set: function(val) {\n                if (properties.modeNames.indexOf(val) >= 0) {\n                    state.mode = properties.modeNames.indexOf(val);\n                    //render();\n                }\n            }\n        });\n\n        Object.defineProperty(this, 'switch_state', {\n            get: function() {\n                return state.switch_state;\n            },\n            set: function(val) {\n                if (properties.swtitchStates.indexOf(val) >= 0) {\n                    state.switch_state = val;\n                    //render();\n                }\n            }\n        });\n\n\n        function str2bool(strvalue) {\n            return (strvalue && typeof strvalue == 'string') ? (strvalue.toLowerCase() == 'true') : (strvalue == true);\n        }\n\n        Object.defineProperty(this, 'away', {\n            get: function() {\n                return state.away;\n            },\n            set: function(val) {\n                state.away = !!str2bool(val);\n                //render();\n            }\n        });\n\n\n        /*\n         * SVG\n         */\n        var svg = createSVGElement('svg', {\n            width: '100%', //options.diameter+'px',\n            height: '100%', //options.diameter+'px',\n            viewBox: '0 0 ' + options.diameter + ' ' + options.diameter,\n            class: 'dial'\n        }, targetElement);\n\n        // DEFS \n        var defs = createSVGElement('defs', null, svg);\n\n        var qgradient = createSVGElement('linearGradient', {\n            'id': targetElement.getAttribute('id') + 'qGradient',\n            gradientTransform: 'rotate(65)'\n        }, defs);\n        var stop = createSVGElement('stop', {\n            'offset': '50%',\n            'stop-color': 'rgb(86,89,94)'\n        }, qgradient);\n        var stop = createSVGElement('stop', {\n            'offset': '65%',\n            'stop-color': 'rgb(30,30,30)'\n        }, qgradient);\n\n        var qGradientT = createSVGElement('linearGradient', {\n            'id': targetElement.getAttribute('id') + 'qGradientT',\n            gradientTransform: 'rotate(65)'\n        }, defs);\n        var stop = createSVGElement('stop', {\n            'offset': '55%',\n            'stop-color': '#3b3e43',\n            'stop-opacity': '1'\n        }, qGradientT);\n        var stop = createSVGElement('stop', {\n            'offset': '90%',\n            'stop-color': 'rgb(0,0,0)',\n            'stop-opacity': '1'\n        }, qGradientT);\n\n        var clipPath = createSVGElement('clipPath', {\n            'id': targetElement.getAttribute('id') + 'qClip',\n        }, defs);\n        var circle = createSVGElement('circle', {\n            cx: properties.radius,\n            cy: properties.radius,\n            r: properties.radius - 25\n        }, clipPath);\n\n\n        var ledRingGradient = createSVGElement('radialGradient', {\n            'id': targetElement.getAttribute('id') + 'ledColor',\n            'cx': \"50%\",\n            'cy': \"50%\",\n            'r': \"95%\",\n            'fx': \"50%\",\n            'fy': \"50%\"\n        }, defs);\n        var ledRingGradientColorIn = createSVGElement('stop', {\n            'offset': '45%',\n            'stop-color': 'rgb(255,0,130)',\n            'stop-opacity': '1'\n        }, ledRingGradient);\n        var ledRingGradientColorOut = createSVGElement('stop', {\n            'offset': '65%',\n            'stop-color': 'rgb(0,0,0)',\n            'stop-opacity': '1'\n        }, ledRingGradient);\n\n        var egradient = createSVGElement('linearGradient', {\n            'id': targetElement.getAttribute('id') + 'eGradient',\n            gradientTransform: 'rotate(55)'\n        }, defs);\n        var stop = createSVGElement('stop', {\n            'offset': '55%',\n            'stop-color': '#888888',\n            'stop-opacity': '1'\n        }, egradient);\n        var stop = createSVGElement('stop', {\n            'offset': '95%',\n            'stop-color': '#333333',\n            'stop-opacity': '1'\n        }, egradient);\n\n        // DIAL\n        var circle = createSVGElement('circle', {\n            cx: properties.radius,\n            cy: properties.radius,\n            r: properties.radius,\n            class: 'eGradient'\n        }, svg);\n        var ledRing = createSVGElement('circle', {\n            cx: properties.radius,\n            cy: properties.radius,\n            r: properties.radius - 3,\n            'stroke': 'black',\n            'stroke-width': '1',\n            class: 'led'\n        }, svg);\n        var circle = createSVGElement('circle', {\n            cx: properties.radius,\n            cy: properties.radius,\n            r: properties.radius - 20,\n            class: 'qGradient'\n        }, svg);\n        var circle = createSVGElement('circle', {\n            cx: properties.radius,\n            cy: properties.radius,\n            r: properties.radius - 25,\n            class: 'qGradient'\n        }, svg);\n        var lblMain = createSVGElement('text', {\n            x: properties.radius,\n            y: 70,\n            class: 'lbl lblDial'\n        }, svg);\n        var lblMainText = document.createTextNode(options.labels.ambient);\n        lblMain.appendChild(lblMainText);\n\n        var lblAmbient = createSVGElement('text', {\n            x: properties.radius,\n            y: 210,\n            'font-size': '160',\n            class: 'lbl lblAmbient'\n        }, svg);\n        var lblAmbientText = document.createTextNode('21');\n        lblAmbient.appendChild(lblAmbientText);\n        var lblAmbientDec = createSVGElement('tspan', {\n            'font-size': '60',\n        }, lblAmbient);\n        var lblAmbientDecText = document.createTextNode('.5');\n        lblAmbientDec.appendChild(lblAmbientDecText);\n\n        var line = createSVGElement('line', {\n            x1: 55,\n            y1: properties.radius + 35,\n            x2: options.diameter - 55,\n            y2: properties.radius + 35,\n            'stroke': '#DDDDDD',\n            'stroke-width': '1',\n            'opacity': '0.8'\n        }, svg);\n\n        var lblLeft = createSVGElement('text', {\n            x: 125,\n            y: properties.radius + 75,\n            class: 'lbl lblDial'\n        }, svg);\n        var lblLeftText = document.createTextNode(options.labels.set);\n        lblLeft.appendChild(lblLeftText);\n\n        var lblTarget = createSVGElement('text', {\n            x: 125,\n            y: properties.radius + 115,\n            'font-size': '35',\n            class: 'lbl lblTarget',\n            'id': targetElement.getAttribute('id') + 'lblTarget'\n        }, svg);\n        var lblTargetText = document.createTextNode('20');\n        lblTarget.appendChild(lblTargetText);\n\n        var lblTargetDec = createSVGElement('tspan', {\n            'font-size': '20',\n        }, lblTarget);\n\n        var lblTargetDecText = document.createTextNode('.5');\n        lblTargetDec.appendChild(lblTargetDecText);\n\n        var lblRight = createSVGElement('text', {\n            x: options.diameter - 125,\n            y: properties.radius + 75,\n            class: 'lbl lblDial'\n        }, svg);\n        var lblRightText = document.createTextNode(options.labels.mode);\n        lblRight.appendChild(lblRightText);\n\n        var lblMode = createSVGElement('text', {\n            x: options.diameter - 125,\n            y: properties.radius + 115,\n            'font-size': '35',\n            class: 'lbl lblTarget icon',\n            'id' : targetElement.getAttribute('id') + 'lblMode'\n        }, svg);\n        var lblModeText = document.createTextNode(properties.modes[0].icon);\n        lblMode.appendChild(lblModeText);\n\n        var btnSet = createSVGElement('g', {\n            transform: 'translate(200,200)'\n        }, svg);\n        var btnLeft = createSVGElement('path', {\n            d: 'M0,40 L0,175   A175,175 0 0,1 -175,40    z',\n            fill: 'blue',\n            opacity: '0',\n            'id': targetElement.getAttribute('id') + 'btnLeft'\n        }, btnSet);\n        var btnRight = createSVGElement('path', {\n            d: 'M0,40 L175,40   A175,175 0 0,1    0,175  z',\n            fill: 'red',\n            opacity: '0',\n            'id': targetElement.getAttribute('id') + 'btnRight'\n        }, btnSet);\n\n\n\n        btnLeft.onclick = function() {\n            setTargetClick();\n        };\n\n        btnRight.onclick = function() {\n            setModeClick();\n        };\n\n        var targetPanel = false;\n        var modePanel = false;\n\n        var lblAmbientAttributes = {\n            x: lblAmbient.getAttribute('x'),\n            y: lblAmbient.getAttribute('y'),\n            size: lblAmbient.getAttribute('font-size')\n        };\n\n        var lblAmbientDecAttributes = {\n            x: lblAmbientDec.getAttribute('x'),\n            y: lblAmbientDec.getAttribute('y'),\n            size: lblAmbientDec.getAttribute('font-size')\n        };\n\n        var lblTargetAttributes = {\n            x: lblTarget.getAttribute('x'),\n            y: lblTarget.getAttribute('y'),\n            size: lblTarget.getAttribute('font-size')\n        };\n\n        var lblTargetDecAttributes = {\n            x: lblTargetDec.getAttribute('x'),\n            y: lblTargetDec.getAttribute('y'),\n            size: lblTargetDec.getAttribute('font-size')\n        };\n\n        var lblModeAttributes = {\n            x: lblMode.getAttribute('x'),\n            y: lblMode.getAttribute('y'),\n            size: lblMode.getAttribute('font-size')\n        };\n\n        var lblRightAttributes = {\n            x: lblRight.getAttribute('x'),\n            y: lblRight.getAttribute('y'),\n            size: lblRight.getAttribute('font-size')\n        };\n\n        var lblLeftAttributes = {\n            x: lblLeft.getAttribute('x'),\n            y: lblLeft.getAttribute('y'),\n            size: lblLeft.getAttribute('font-size')\n        };\n\n        render();\n\n        function setAmbientTemperature(ambientTemp) {\n            var splitValues = separateDecValue(ambientTemp);\n            lblAmbientText.textContent = splitValues.int;\n            lblAmbientDecText.textContent = splitValues.dec;\n        };\n\n\n        function calcTargetTemperature(operation) {\n            let currentTemp = Number(parseFloat(lblTargetText.textContent + lblTargetDecText.textContent)).toFixed(1);\n            let targetTemp = (operation == '-' ? Number(Number(currentTemp) - 0.5).toFixed(1) : Number(Number(currentTemp) + 0.5).toFixed(1));\n            targetTemp = rangedTemperature(targetTemp);\n            setTargetTemperature(targetTemp);\n            chkSwitchState();\n        };\n\n        function setTargetTemperature(targetTemp) {\n            var splitValues = separateDecValue(targetTemp);\n            lblTargetText.textContent = splitValues.int;\n            lblTargetDecText.textContent = splitValues.dec;\n            if (state.target_temperature != targetTemp) {\n                state.target_temperature = targetTemp\n                sendMsg();\n            };\n        };\n\n        function separateDecValue(floatFalue) {\n            var int = Math.floor(floatFalue);\n            var dec = Math.floor(((floatFalue % 1) * 10)) > 0 ? (\".\" + Math.floor(((floatFalue % 1) * 10))) : \"\";\n            return {\n                int,\n                dec\n            };\n        };\n\n        function rangedTemperature(temperature) {\n            temperature = temperature < options.mintemp ? options.maxtemp : temperature;\n            temperature = temperature > options.maxtemp ? options.mintemp : temperature;\n            return temperature;\n        };\n\n        function chkSwitchState() {\n            console.log(\"chkSwitchState\");\n            var switchState = state.switch_state;\n            switch (state.mode) {\n                case 0:\n                    switchState = state.ambient_temperature < state.target_temperature ? 'heating' : 'off';\n                    break;\n                case 1:\n                    switchState = state.ambient_temperature > state.target_temperature ? 'cooling' : 'off';\n                    break;\n                default:\n                    switchState = 'off';\n            };\n\n            ledRingGradientColorIn.setAttribute('stop-color', options.ledColors[state.switch_state]);\n\n            if (state.switch_state != switchState) {\n                state.switch_state = switchState;\n                sendMsg();\n            };\n        };\n\n\n        function resetButton() {\n            btnLeft.onmousedown = \"\";\n            btnLeft.onmouseup = \"\";\n            btnLeft.onclick = function() {\n                setTargetClick();\n            };\n            btnRight.onmousedown = \"\";\n            btnRight.onmouseup = \"\";\n            btnRight.onclick = function() {\n                setModeClick();\n            };\n        };\n\n        function switchMainView(element, originalAttributes, mainLabel, leftLabel, rightLabel, panelState) {\n            setClass(lblAmbient, \"nodisplay\", panelState);\n            setClass(lblMain, \"animate\", panelState);\n            setClass(lblLeft, \"animate\", panelState);\n            setClass(lblRight, \"animate\", panelState);\n            setClass(element, \"animate\", panelState);\n\n            lblMainText.textContent = panelState ? mainLabel : options.labels.ambient;\n            lblLeftText.textContent = panelState ? leftLabel : options.labels.set;\n\n            lblLeft.setAttribute('y', panelState ? Number(lblLeftAttributes.y) + 40 : lblLeftAttributes.y);\n            lblLeft.setAttribute('font-size', panelState ? \"3.5em\" : \"1em\");\n\n            lblRightText.textContent = panelState ? rightLabel : options.labels.mode;\n            lblRight.setAttribute('y', panelState ? Number(lblRightAttributes.y) + 40 : lblRightAttributes.y);\n            lblRight.setAttribute('font-size', panelState ? \"3.5em\" : \"1em\");\n\n            element.setAttribute('x', panelState ? lblAmbientAttributes.x : originalAttributes.x);\n            element.setAttribute('x', panelState ? lblAmbientAttributes.x : originalAttributes.x);\n            element.setAttribute('y', panelState ? lblAmbientAttributes.y : originalAttributes.y);\n            element.setAttribute('font-size', panelState ? lblAmbientAttributes.size : originalAttributes.size);\n\n        };\n\n\n        function setTargetClick() {\n\n            targetPanel = targetPanel ? false : true;\n            setClass(lblMode, \"nodisplay\", targetPanel);\n            switchMainView(lblTarget, lblTargetAttributes, options.labels.set, options.labels.minus, options.labels.plus, targetPanel);\n\n            lblTargetDec.setAttribute('font-size', targetPanel ? lblAmbientDecAttributes.size : lblTargetDecAttributes.size);\n\n            if (targetPanel) {\n                btnLeft.onclick = \"\";\n                btnRight.onclick = \"\";\n\n                btnLeft.onmousedown = function() {\n                    calcTargetTemperature(\"-\");\n                    if (mousedownID == -1) { //Prevent multimple loops!\n                        mousedownID = setInterval(calcTargetTemperature, 500, '-');\n                    }\n                };\n                btnLeft.onmouseup = function() {\n                    if (mousedownID != -1) { //Only stop if exists\n                        clearInterval(mousedownID);\n                        mousedownID = -1;\n                    }\n                };\n\n                btnRight.onmousedown = function() {\n                    calcTargetTemperature(\"+\");\n                    if (mousedownID == -1) { //Prevent multimple loops!\n                        mousedownID = setInterval(calcTargetTemperature, 500, '+');\n                    }\n                };\n                btnRight.onmouseup = function() {\n                    if (mousedownID != -1) { //Only stop if exists\n                        clearInterval(mousedownID);\n                        mousedownID = -1;\n                    }\n                };\n\n                lblTarget.onclick = function() {\n                    setTargetClick();\n                };\n            } else {\n                resetButton()\n            }\n        };\n\n        function setModeClick() {\n\n            modePanel = modePanel ? false : true;\n            setClass(lblTarget, \"nodisplay\", modePanel);\n            switchMainView(lblMode, lblModeAttributes, options.labels.mode, options.labels.left, options.labels.right, modePanel);\n\n            if (modePanel) {\n\n                btnLeft.onclick = function() {\n                    mode = state.mode;\n                    mode = --mode < 0 ? properties.modes.length - 1 : mode;\n                    console.log(\"MODE :\" + mode);\n                    setModeName(properties.modeNames[mode]);\n                    chkSwitchState();\n                    sendMsg();\n                };\n\n                btnRight.onclick = function() {\n                    mode = state.mode;\n                    mode = ++mode > properties.modes.length - 1 ? 0 : mode;\n                    console.log(\"MODE :\" + mode);\n                    setModeName(properties.modeNames[mode]);\n                    chkSwitchState();\n                    sendMsg();\n                };\n//                document.getElementById(targetElement.getAttribute('id') + \"lblMode\").onclick = function() {\n                lblMode.onclick = function() {\n                    setModeClick();\n                };\n            } else {\n                resetButton()\n            }\n        };\n\n        function setModeName(modeName) {\n            lblMode.textContent = properties.modes[properties.modeNames.indexOf(modeName)].icon;\n            lblMode.style.fill = properties.modes[properties.modeNames.indexOf(modeName)].color;\n            state.mode = properties.modeNames.indexOf(modeName);\n        };\n\n        function sendMsg() {\n            if (typeof options.onChangeState == 'function') {\n                options.onChangeState(state.switch_state);\n            }\n        };\n\n        function render() {\n            console.log(\"RENDER\");\n            setAmbientTemperature(self.ambient_temperature);\n            setTargetTemperature(self.target_temperature);\n            setModeName(self.mode_name);\n            chkSwitchState();\n        };\n\n    };\n})();\n\nvar initializing = true;\n(function(scope) {\n    console.log(\"scope.id = GhostThermostat\" + scope.$id);\n    $(function() {\n        var ghostThermostat = new ghostThermostatDial(document.getElementById('GhostThermostat' + scope.$id), {\n            onChangeState: function() {\n                var p = {\n                    \"ambient_temperature\": ghostThermostat.ambient_temperature,\n                    \"target_temperature\": ghostThermostat.target_temperature,\n                    \"mode\": ghostThermostat.mode_name,\n                    \"switch_state\": ghostThermostat.switch_state,\n                    \"away\": ghostThermostat.away\n                };\n                scope.send({\n                    topic: \"changed_state\",\n                    payload: p\n                });\n            }\n        });\n\n\n        scope.$watch('msg', function(data) {\n            if (initializing) {\n                initializing = false;\n            } else {\n                ghostThermostat.ambient_temperature = data.payload.ambient_temperature || ghostThermostat.ambient_temperature;\n                ghostThermostat.target_temperature = data.payload.target_temperature || ghostThermostat.target_temperature;\n                ghostThermostat.mode_name = data.payload.mode || ghostThermostat.mode_name;\n                ghostThermostat.switch_state = data.payload.switch_state || ghostThermostat.switch_state;\n                ghostThermostat.away = data.payload.away || ghostThermostat.away;\n            }\n        });\n    });\n})(scope);\n</script>",
+        "storeOutMessages": true,
+        "fwdInMessages": false,
+        "resendOnRefresh": false,
+        "templateScope": "local",
+        "className": "",
+        "x": 1030,
+        "y": 640,
+        "wires": [
+            []
+        ],
+        "icon": "font-awesome/fa-tachometer"
+    },
+    {
+        "id": "3ec92e35784b36b2",
+        "type": "ui_spacer",
+        "z": "d6c548e700f619c9",
+        "name": "spacer",
+        "group": "9c90a075584ede2b",
+        "order": 1,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "1df55a8c24a09492",
+        "type": "ui_spacer",
+        "z": "d6c548e700f619c9",
+        "name": "spacer",
+        "group": "9c90a075584ede2b",
+        "order": 3,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "7c9962d239843d16",
+        "type": "ui_spacer",
+        "z": "d6c548e700f619c9",
+        "name": "spacer",
+        "group": "9c90a075584ede2b",
+        "order": 4,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "802784159d4b64c0",
+        "type": "ui_spacer",
+        "z": "d6c548e700f619c9",
+        "name": "spacer",
+        "group": "9c90a075584ede2b",
+        "order": 5,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "5e03f0014abafd2f",
+        "type": "ui_spacer",
+        "z": "d6c548e700f619c9",
+        "name": "spacer",
+        "group": "9c90a075584ede2b",
+        "order": 6,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "637fd705948d1186",
+        "type": "ui_spacer",
+        "z": "d6c548e700f619c9",
+        "name": "spacer",
+        "group": "9c90a075584ede2b",
+        "order": 7,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "803e4f686f6d5346",
+        "type": "ui_spacer",
+        "z": "d6c548e700f619c9",
+        "name": "spacer",
+        "group": "9c90a075584ede2b",
+        "order": 8,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "9e1f9ab890a105f8",
+        "type": "ui_spacer",
+        "z": "d6c548e700f619c9",
+        "name": "spacer",
+        "group": "9c90a075584ede2b",
+        "order": 9,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "f469240e30b0636b",
+        "type": "ui_spacer",
+        "z": "d6c548e700f619c9",
+        "name": "spacer",
+        "group": "9c90a075584ede2b",
+        "order": 10,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "3ae8ddd4c6dba6c5",
+        "type": "ui_spacer",
+        "z": "d6c548e700f619c9",
+        "name": "spacer",
+        "group": "9c90a075584ede2b",
+        "order": 11,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "dfa72b302f12ce8a",
+        "type": "ui_spacer",
+        "z": "d6c548e700f619c9",
+        "name": "spacer",
+        "group": "9c90a075584ede2b",
+        "order": 12,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "c4154f86b97e469b",
+        "type": "ui_spacer",
+        "z": "d6c548e700f619c9",
+        "name": "spacer",
+        "group": "9c90a075584ede2b",
+        "order": 13,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "00c569a4c43ada18",
+        "type": "ui_spacer",
+        "z": "d6c548e700f619c9",
+        "name": "spacer",
+        "group": "64a50a7178579a49",
+        "order": 1,
+        "width": 12,
+        "height": 1
+    },
+    {
         "id": "9c90a075584ede2b",
         "type": "ui_group",
         "name": "Thermostat",
@@ -36,11 +501,63 @@
         "className": ""
     },
     {
+        "id": "64a50a7178579a49",
+        "type": "ui_group",
+        "name": "Menu",
+        "tab": "f394bc89e321d6f1",
+        "order": 2,
+        "disp": false,
+        "width": "14",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "c5db38b6cf8d6851",
+        "type": "mqtt-broker",
+        "name": "MQTTGhost",
+        "broker": "ghostnrs",
+        "port": "8883",
+        "tls": "5a5138d091e1bc10",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": "5",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "sessionExpiry": ""
+    },
+    {
         "id": "f394bc89e321d6f1",
         "type": "ui_tab",
         "name": "Thermostat",
         "icon": "dashboard",
         "disabled": false,
         "hidden": true
+    },
+    {
+        "id": "5a5138d091e1bc10",
+        "type": "tls-config",
+        "name": "TLS Mosquitto",
+        "cert": "/home/pi/.ssl/client.crt",
+        "key": "/home/pi/.ssl/client.key",
+        "ca": "/home/pi/.ssl/ca.crt",
+        "certname": "",
+        "keyname": "",
+        "caname": "",
+        "servername": "",
+        "verifyservercert": false,
+        "alpnprotocol": ""
     }
 ]
